@@ -1,4 +1,5 @@
 #include "Dataset.h"
+#include <cmath>
 
 struct Numeric;
 struct Reweighting;
@@ -120,18 +121,21 @@ bool Dataset::set_control_branch(std::string name, std::string type)
 	{
 		tree->SetBranchAddress(name.c_str(), &variables[name]->double_);
 		variables[name]->isDbl = true;
+		control_vars.push_back(name);
 		return 1;
 	}
 	else if (type == "float")
 	{
 		tree->SetBranchAddress(name.c_str(), &variables[name]->float_);
 		variables[name]->isFlt = true;
+		control_vars.push_back(name);
 		return 1;
 	}
 	else if (type == "int")
 	{
 		tree->SetBranchAddress(name.c_str(), &variables[name]->int_);
 		variables[name]->isInt = true;
+		control_vars.push_back(name);
 		return 1;
 	}
 	else
@@ -167,6 +171,11 @@ void Dataset::at( const int index )
 }
 //----------------------------------------------------------------------------
 
+double Dataset::get_value(std::string name)
+{
+	return cast_as_double(*(variables[name]));
+}
+
 std::vector<double> &Dataset::input()
 {
 	unsigned int ptr = 0;
@@ -197,11 +206,11 @@ double Dataset::get_physics_reweighting()
     }
     else if (cast_as_int(*(variables["bottom"])) == 1)
     {
-        return bottom_correction[cast_as_int(*(variables["cat_pT"]))][cast_as_int(*(variables["cat_eta"]))];
+        return reweighting.bottom_correction[cast_as_int(*(variables["cat_pT"]))][cast_as_int(*(variables["cat_eta"]))];
     }
     else
     {
-        return charm_correction[cast_as_int(*(variables["cat_pT"]))][cast_as_int(*(variables["cat_eta"]))];
+        return reweighting.charm_correction[cast_as_int(*(variables["cat_pT"]))][cast_as_int(*(variables["cat_eta"]))];
     }
 }
 
@@ -212,75 +221,84 @@ unsigned int Dataset::num_entries()
 
 void Dataset::determine_reweighting()
 {
-	int n_estimate = n_entries;
-	double charm_hist[7][4], bottom_hist[7][4], light_hist[7][4];
-	std::cout << "light_hist[0][0] = " << bottom_hist[5][0] << std::endl;
+	int n_estimate = n_entries / 20;
+	// double charm_hist[7][4], bottom_hist[7][4], light_hist[7][4];
 
-
+	std::vector<std::vector<double> > charm_correction, bottom_correction, charm_hist, bottom_hist, light_hist;
 	charm_correction.resize(7);
 	bottom_correction.resize(7);
-	for (int i = 0; i < 4; ++i)
+	charm_hist.resize(7);
+	bottom_hist.resize(7);
+	light_hist.resize(7);
+	for (int i = 0; i < 7; ++i)
 	{
 		charm_correction[i].resize(4);
 		bottom_correction[i].resize(4);
+		charm_hist[i].resize(4);
+		bottom_hist[i].resize(4);
+		light_hist[i].resize(4);
 	}
 
+	for (int cat_pT = 0; cat_pT < 7; ++cat_pT)
+	{
+		for (int cat_eta = 0; cat_eta < 4; ++cat_eta)
+		{
+			light_hist[cat_pT][cat_eta] = 0;
+			charm_hist[cat_pT][cat_eta] = 0;
+			bottom_hist[cat_pT][cat_eta] = 0;
+		}
+	}
 
 	for (int i = 0; i < n_estimate; ++i)
 	{
 		at(i);
-		if (cast_as_int(*variables["light"]) == 1)
+		if ((fabs(get_value("eta")) < 2.5) && (get_value("pt") > 25))
 		{
-			std::cout << "the input is " << cast_as_int(*(variables["cat_pT"])) << ", " << cast_as_int(*(variables["cat_eta"])) << std::endl;
-			light_hist[cast_as_int(*(variables["cat_pT"]))][cast_as_int(*(variables["cat_eta"]))] += 1;
+			if (cast_as_int(*variables["light"]) == 1)
+			{
+				light_hist[cast_as_int(*(variables["cat_pT"]))][cast_as_int(*(variables["cat_eta"]))] += 1;
+			}
+			else if (cast_as_int(*variables["charm"]) == 1)
+			{
+				charm_hist[cast_as_int(*(variables["cat_pT"]))][cast_as_int(*(variables["cat_eta"]))] += 1;
+			}
+			else if (cast_as_int(*variables["bottom"]) == 1)
+			{
+				bottom_hist[cast_as_int(*(variables["cat_pT"]))][cast_as_int(*(variables["cat_eta"]))] += 1;
+			}
 		}
-		else if (cast_as_int(*variables["charm"]) == 1)
-		{
-			std::cout << "the input is " << cast_as_int(*(variables["cat_pT"])) << ", " << cast_as_int(*(variables["cat_eta"])) << std::endl;
-			charm_hist[cast_as_int(*(variables["cat_pT"]))][cast_as_int(*(variables["cat_eta"]))] += 1;
-		}
-		else if (cast_as_int(*variables["bottom"]) == 1)
-		{
-			std::cout << "the input is " << cast_as_int(*(variables["cat_pT"])) << ", " << cast_as_int(*(variables["cat_eta"])) << std::endl;
-			bottom_hist[cast_as_int(*(variables["cat_pT"]))][cast_as_int(*(variables["cat_eta"]))] += 1;
-		}
+
 	}
-	std::cout << "n_estimate = " << n_estimate << std::endl;
-	// std::cout << "light_hist[0][0] = " << bottom_hist[5][0] << std::endl;
-	std::cout << "\nBottom Correction:" << std::endl;
 	for (int cat_pT = 0; cat_pT < 7; ++cat_pT)
 	{
-		
 		for (int cat_eta = 0; cat_eta < 4; ++cat_eta)
 		{
-			std::cout << "starting cat_pt = " << cat_pT << ", cat_eta = " << cat_eta << "." << std::endl;
-			bottom_correction[cat_pT][cat_eta] = light_hist[cat_pT][cat_eta] / bottom_hist[cat_pT][cat_eta];
-			std::cout << "..." << std::endl;
-			charm_correction[cat_pT][cat_eta] = light_hist[cat_pT][cat_eta] / (2 * charm_hist[cat_pT][cat_eta]);
-			std::cout << "finishing cat_pt = " << cat_pT << ", cat_eta = " << cat_eta << "." << std::endl;
+			bottom_correction[cat_pT][cat_eta] = std::min(std::max(light_hist[cat_pT][cat_eta], 1.0) / std::max(bottom_hist[cat_pT][cat_eta], 1.0), 20.0);
+			charm_correction[cat_pT][cat_eta] = std::min(std::max(light_hist[cat_pT][cat_eta], 1.0) / (2 * std::max(charm_hist[cat_pT][cat_eta], 1.0)), 20.0);
 		}
 	}
 
-	std::cout << "\nBottom Correction:" << std::endl;
-	for (int i = 0; i < 7; ++i)
-	{
-		for (int j = 0; j < 4; ++j)
-		{
-			std::cout << bottom_correction[i][j] << "   ";
-		}
-		std::cout << "\n";
-	}
+	// std::cout << "\nBottom Correction:" << std::endl;
+	// for (int i = 0; i < 7; ++i)
+	// {
+	// 	for (int j = 0; j < 4; ++j)
+	// 	{
+	// 		std::cout << bottom_correction[i][j] << "   ";
+	// 	}
+	// 	std::cout << "\n";
+	// }
 
-	std::cout << "\nCharm Correction:" << std::endl;
-	for (int i = 0; i < 7; ++i)
-	{
-		for (int j = 0; j < 4; ++j)
-		{
-			std::cout << charm_correction[i][j] << "   ";
-		}
-		std::cout << "\n";
-	}
-
+	// std::cout << "\nCharm Correction:" << std::endl;
+	// for (int i = 0; i < 7; ++i)
+	// {
+	// 	for (int j = 0; j < 4; ++j)
+	// 	{
+	// 		std::cout << charm_correction[i][j] << "   ";
+	// 	}
+	// 	std::cout << "\n";
+	// }
+	reweighting.charm_correction = charm_correction;
+	reweighting.bottom_correction = bottom_correction;
 }
 
 

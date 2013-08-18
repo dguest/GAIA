@@ -225,8 +225,6 @@ int main(int argc, char *argv[])
 
     net.load_specifications(spec_file);
 
-    net.finalize_dataset();
-
     if(!(load_flag)) //training case for charm tag    
     {
 

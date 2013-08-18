@@ -83,10 +83,6 @@ void NeuralNet::set_dataset(std::string root_file, std::string tree_name)
 {
 	dataset = std::move(std::unique_ptr<Dataset>(new Dataset(root_file, tree_name)));
 }
-void NeuralNet::finalize_dataset()
-{
-	dataset->determine_reweighting();
-}
 //----------------------------------------------------------------------------
 bool NeuralNet::set_input_branch(std::string name, std::string type)
 {
@@ -103,6 +99,10 @@ bool NeuralNet::set_control_branch(std::string name, std::string type)
 	dataset->set_control_branch(name, type);
 }
 //----------------------------------------------------------------------------
+double NeuralNet::get_value(std::string name)
+{
+	return dataset->get_value(name);
+}
 void NeuralNet::get_dataset_entry(const int index)
 {
 	dataset->at(index);
@@ -151,31 +151,22 @@ void NeuralNet::setActivationFunctions(std::vector<double> (*sigmoid_function) (
 //----------------------------------------------------------------------------
 void NeuralNet::train(int n_epochs, int n_train, std::string save_filename, bool verbose, std::string timestamp)
 {
-
+	dataset->determine_reweighting();
 	double pct;
 	for (int i = 0; i < n_epochs; ++i) 
     {
+    	save(".temp_progress_" + save_filename + std::to_string(i) + "_"+ timestamp + ".nnet"); //save a progress file in case we need to kill the process.
         for (int entry = 0; entry < n_train; entry++) 
         {
-            get_dataset_entry(entry);
-
-            for (auto &entry : output())
+        	get_dataset_entry(entry);
+        	// std::cout << "pT = " << get_value("pt") << ", and eta = " << get_value("eta") << std::endl;
+            // if ((get_value("pt") < 500) && (fabs(get_value("eta")) < 2.5))
+            if ((get_value("pt") < 500) && (get_value("pt") > 25) && (fabs(get_value("eta")) < 2.5))
             {
-            	std::cout << entry << "  ";
+            	// std::cout << "And we train..." << std::endl;
+            	get_dataset_entry(entry);
+            	train(input(), output(), get_physics_reweighting());
             }
-
-            std::cout << "\n";
-
-            train(input(), output(), get_physics_reweighting());
-            // train(input(), output());
-
-            for (auto &entry : predict(input()))
-            {
-            	std::cout << entry << "  ";
-            }
-
-            std::cout << "\n";
-            
 
             pct = (((double)(entry)) / ((double) (n_train))) * 100;
             if (verbose)
@@ -183,7 +174,7 @@ void NeuralNet::train(int n_epochs, int n_train, std::string save_filename, bool
                 epoch_progress_bar(pct, i + 1, n_epochs);
             }
         }
-        save(".temp_progress_" + save_filename + std::to_string(i) + "_"+ timestamp + ".nnet"); //save a progress file in case we need to kill the process.
+        
     }
     if (verbose)
     {
@@ -264,22 +255,25 @@ void NeuralNet::getTransform(bool verbose, bool into_memory)
 	for (int i = 0; i < n_estimate; ++i)
 	{
 		dataset->at(i);
-		++n;
-	    ENTRY = dataset->input();
-	    if (into_memory)
-	    {
-	    	dataset_mem.push_back(ENTRY);
-	    	weights_mem.push_back(get_physics_reweighting());
-	    }
-	     // online, numerically stable algorithm 
-	    for (unsigned int j = 0; j < n_cols; ++j)
-	    {
-	        temp = ENTRY[j];
-	        double old_mean = means[j];
-	        means[j] += ((temp - means[j]) / n);
-	        stdev[j] = ((n - 2) * stdev[j] + (temp - means[j]) * (temp - old_mean)) / std::max((double)(n - 1), 1.0000);
+		if ((get_value("pt") > 25) && (fabs(get_value("eta")) < 2.5))
+		{
+			++n;
+		    ENTRY = dataset->input();
+		    if (into_memory)
+		    {
+		    	dataset_mem.push_back(ENTRY);
+		    	weights_mem.push_back(get_physics_reweighting());
+		    }
+		     // online, numerically stable algorithm 
+		    for (unsigned int j = 0; j < n_cols; ++j)
+		    {
+		        temp = ENTRY[j];
+		        double old_mean = means[j];
+		        means[j] += ((temp - means[j]) / n);
+		        stdev[j] = ((n - 2) * stdev[j] + (temp - means[j]) * (temp - old_mean)) / std::max((double)(n - 1), 1.0000);
 
-	    }
+		    }
+		}
 		if (verbose)
 		{
 		    pct = (((double)(i)) / ((double) (n_estimate))) * 100;

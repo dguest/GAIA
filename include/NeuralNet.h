@@ -39,8 +39,9 @@ public:
 	bool set_output_branch(std::string name, std::string type);
 	bool set_control_branch(std::string name, std::string type);
 
+	double get_value(std::string name);
+
 	bool load_specifications(const std::string &filename);
-	void finalize_dataset();
 
 	double get_physics_reweighting();
 
@@ -57,6 +58,7 @@ public:
 
 	void getTransform(bool verbose = false, bool into_memory = 0);
 	void setTransform( std::vector<double> Mean, std::vector<double> Stddev );
+
 
 	void setActivationFunctions(std::vector<double> (*sigmoid_function) (std::vector<double>),\
 	                            double (*sigmoid_derivative)(double), \

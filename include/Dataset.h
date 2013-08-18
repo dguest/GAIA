@@ -44,6 +44,7 @@ public:
 	bool set_output_branch(std::string name, std::string type);
 	bool set_control_branch(std::string name, std::string type);
 	std::map<std::string, double> get_performance_map(std::vector<std::string> &variable_names);
+	double get_value(std::string name);
 	void operator[]( const int index );
 	void at( const int index );
 	std::vector<double> &input();
@@ -58,9 +59,9 @@ private:
 	bool fail;
 	std::map<std::string, std::unique_ptr<Numeric>> variables;
 	unsigned int n_entries;
-	std::vector<std::string> input_vars, output_vars;
+	std::vector<std::string> input_vars, output_vars, control_vars;
 	std::vector<double> m_input, m_output;
-	std::vector<std::vector<double> > charm_correction, bottom_correction;
+	Reweighting reweighting;
 };
 
 
