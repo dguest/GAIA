@@ -23,7 +23,7 @@ class Architecture
 {
 public:
 //----------------------------------------------------------------------------
-	Architecture(std::vector<int> structure, ann_type this_net, std::vector<double> (*sigmoid_function) (std::vector<double>), double (*sigmoid_derivative) (double));
+	Architecture(std::vector<int> structure, std::vector<double> (*sigmoid_function) (std::vector<double>), double (*sigmoid_derivative) (double));
 	~Architecture();
 	std::vector<double> test(std::vector<double> Event);
 	void backpropagate(std::vector<double> error, std::vector<double> Event, double weight);
@@ -41,11 +41,10 @@ private:
 	std::vector<double> reconstruction_error;
 	std::vector<int> structure;
 	int layers;
-	bool regress, is_denoising;
+	bool is_denoising;
 	double eta, lambda;
 	double (*_sigmoid_derivative) (double);
 	std::vector<double> (*_sigmoid_function) (std::vector<double>);
-	ann_type this_net;
 	
 };
 #endif

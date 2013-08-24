@@ -8,19 +8,15 @@
 #include "VarUtils.h"
 
 //----------------------------------------------------------------------------
-NeuralNet::NeuralNet(std::vector<int> structure, 
-                     ann_type this_net, 
-                     bool sse_err_func): 
+NeuralNet::NeuralNet(std::vector<int> structure): 
         structure( structure ), 
-        sse(sse_err_func),
         stddev(structure.at(0), 1.0), 
         mean(structure.at(0), 0.0) 
 {
 	learning = 0.1;
 	momentum = 0.5;
-	regress = ( this_net == regression );
 	setActivationFunctions(sigmoid, dsig, softmax);
-	Net = std::move(std::unique_ptr<Architecture>(new Architecture(structure, this_net, _sigmoid, _sigmoid_derivative)));	
+	Net = std::move(std::unique_ptr<Architecture>(new Architecture(structure, _sigmoid, _sigmoid_derivative)));	
 	Net->setLearning(0.1);
 	Net->setMomentum(0.5);
 }
@@ -33,7 +29,7 @@ NeuralNet::~NeuralNet()
 {
 }
 //----------------------------------------------------------------------------
-NeuralNet::NeuralNet(NeuralNet &A) : Net(std::unique_ptr<Architecture>(new Architecture(A.Net->structure, A.Net->this_net, A.Net->_sigmoid_function, A.Net->_sigmoid_derivative))) 
+NeuralNet::NeuralNet(NeuralNet &A) : Net(std::unique_ptr<Architecture>(new Architecture(A.Net->structure, A.Net->_sigmoid_function, A.Net->_sigmoid_derivative))) 
 {
 	setActivationFunctions(A._sigmoid, A._sigmoid_derivative, A._softmax_function);
 	for (unsigned int l = 0; l < Net->Bundle.size(); ++l) 
@@ -60,7 +56,7 @@ NeuralNet& NeuralNet::operator=(const NeuralNet &A)
 	} 
 	else  
 	{
-		Net = std::move(std::unique_ptr<Architecture>(new Architecture(A.Net->structure, A.Net->this_net,  A.Net->_sigmoid_function, A.Net->_sigmoid_derivative)));
+		Net = std::move(std::unique_ptr<Architecture>(new Architecture(A.Net->structure, A.Net->_sigmoid_function, A.Net->_sigmoid_derivative)));
 		for (unsigned int l = 0; l < Net->Bundle.size(); ++l) 
 		{
 			for (int i = 0; i <= Net->Bundle.at(l)->ins; ++i) 
@@ -161,17 +157,24 @@ void NeuralNet::train(int n_epochs, int n_train, std::string save_filename, bool
         	get_dataset_entry(entry);
         	// std::cout << "pT = " << get_value("pt") << ", and eta = " << get_value("eta") << std::endl;
             // if ((get_value("pt") < 500) && (fabs(get_value("eta")) < 2.5))
-            if ((get_value("pt") < 500) && (get_value("pt") > 25) && (fabs(get_value("eta")) < 2.5))
+            if ((get_value("pt") > 20) && (fabs(get_value("eta")) < 2.5) && (get_value("flavor_truth_label") < 8) && (get_value("pt") < 500))
             {
             	// std::cout << "And we train..." << std::endl;
-            	get_dataset_entry(entry);
-            	train(input(), output(), get_physics_reweighting());
+            	// get_dataset_entry(entry);
+            	// vector_print(output());
+            	// vector_print(_softmax_function(Net->test( transform(input()))));
+        		train(input(), output(), get_physics_reweighting());
             }
 
             pct = (((double)(entry)) / ((double) (n_train))) * 100;
             if (verbose)
             {
                 epoch_progress_bar(pct, i + 1, n_epochs);
+            }
+            else
+            {
+				vector_print(transform(input()));
+				std::cout << "\n";
             }
         }
         
@@ -187,54 +190,22 @@ void NeuralNet::train(std::vector<double> Event, std::vector<double> Actual, dou
 {
 	std::vector<double> outs((Net->test( transform(Event) )));
 	assert ( outs.size() == Actual.size());
-	if (!regress) 
+	outs = _softmax_function(outs);
+
+
+	for (unsigned int i = 0; i < outs.size(); ++i) 
 	{
-		outs = _softmax_function(outs);
-
-
-		if(!sse) 
-		{
-			for (unsigned int i = 0; i < outs.size(); ++i) 
-			{
-				outs.at(i) -= Actual.at(i);     // what i was doing before
-				outs.at(i) /= log(2);
-
-				// outs.at(i) -= Actual.at(i);
-				// outs.at(i) /= log(2);
-				// outs.at(i) *= Actual.at(i);
-				// outs.at(i) = _sigmoid_derivative(outs.at(i)) * (outs.at(i) - Actual.at(i));
-			}
-		}
-		else 
-		{
-			for (unsigned int i = 0; i < outs.size(); ++i) 
-			{
-				// outs.at(i) -= Actual.at(i);
-				outs.at(i) = _sigmoid_derivative(outs.at(i)) * (outs.at(i) - Actual.at(i));
-			}
-		}
+		outs.at(i) -= Actual.at(i);     // what i was doing before
+		outs.at(i) /= log(2);
 	}
-	else 
-	{
-		for (unsigned int i = 0; i < outs.size(); ++i) 
-		{
-			outs.at(i) = _sigmoid_derivative(outs.at(i)) * (outs.at(i) - Actual.at(i));
-		}
-	}
+
 
 	Net->backpropagate(outs, transform(Event), weight);
 }
 //----------------------------------------------------------------------------
 std::vector<double> NeuralNet::predict(std::vector<double> Event) 
 {
-	if (regress) 
-	{
-		return std::move(Net->test( transform(Event) ));
-	}
-	else 
-	{ 
-		return std::move(_softmax_function(Net->test( transform(Event) )));
-	}
+	return std::move(_softmax_function(Net->test( transform(Event) )));
 }
 //----------------------------------------------------------------------------
 void NeuralNet::getTransform(bool verbose, bool into_memory) 
@@ -250,12 +221,14 @@ void NeuralNet::getTransform(bool verbose, bool into_memory)
 	std::vector<double> ENTRY(dataset->input());
     int n_cols = ENTRY.size();
     std::vector<double> means(n_cols, 0);
+
+    // n_estimate = 100;
     std::vector<double> stdev(n_cols, 0);
 
 	for (int i = 0; i < n_estimate; ++i)
 	{
 		dataset->at(i);
-		if ((get_value("pt") > 25) && (fabs(get_value("eta")) < 2.5))
+		if (/*(get_value("pt") > 25) && (fabs(get_value("eta")) < 2.5)*/true)
 		{
 			++n;
 		    ENTRY = dataset->input();
@@ -270,7 +243,8 @@ void NeuralNet::getTransform(bool verbose, bool into_memory)
 		        temp = ENTRY[j];
 		        double old_mean = means[j];
 		        means[j] += ((temp - means[j]) / n);
-		        stdev[j] = ((n - 2) * stdev[j] + (temp - means[j]) * (temp - old_mean)) / std::max((double)(n - 1), 1.0000);
+		        double denom = ((n == 1) ? 1.0 : ((double)n - 1));
+		        stdev[j] = ((n - 2) * stdev[j] + (temp - means[j]) * (temp - old_mean)) / denom;
 
 		    }
 		}
@@ -280,6 +254,11 @@ void NeuralNet::getTransform(bool verbose, bool into_memory)
 		    progress_bar(pct);
 		}
 	}
+	for (unsigned int j = 0; j < n_cols; ++j) 
+    {
+        stdev[j] = sqrt(stdev[j]);
+    }
+
 	setTransform(means, stdev);
 }
 //----------------------------------------------------------------------------
@@ -339,14 +318,7 @@ bool NeuralNet::save(const std::string &filename)
         return 0;
     }
     net_file << "#->NNET\n";
-    if (regress) 
-    {
-    	net_file << 1;
-    }
-    else 
-    {
-    	net_file << 0;
-    }
+	net_file << 0;
     for (unsigned int i = 0; i < structure.size(); ++i) 
     {
     	net_file << ", " << structure.at(i);
@@ -411,8 +383,7 @@ bool NeuralNet::load(const std::string &filename)
     	layer_struct.push_back(params.at(i));
     }
 
-    ann_type new_net = ((params.at(0) == 1) ? regression : classification);
-    Net = std::move(std::unique_ptr<Architecture>(new Architecture(layer_struct, new_net, sigmoid, dsig)));
+    Net = std::move(std::unique_ptr<Architecture>(new Architecture(layer_struct, sigmoid, dsig)));
     setActivationFunctions(sigmoid, dsig, softmax);
 
     std::getline( net_file, s );
@@ -502,6 +473,110 @@ bool NeuralNet::load(const std::string &filename)
     }
     return net_file.good();
 }
+bool NeuralNet::write_perf( const std::string &filename, int start, int end)
+{
+	std::vector<std::string> perf_variables {"cat_pT",
+											 "cat_eta",
+											 "pt",
+											 "eta",
+											 "MV1",
+											 "bottom",
+											 "charm",
+											 "light"};
+	if (filename.empty())
+	{
+
+		auto output_variables = dataset->get_output_vars();
+		int ptr = 0;
+		for (auto &name : output_variables)
+		{	
+			if (ptr != 0)
+			{
+				std::cout << ", "
+			}
+			std::cout << "prob_" << name;
+			++ptr;
+		}
+
+        for (auto &name : perf_variables)
+        {
+        	std::cout << ", " << name;
+        }
+        std::cout << std::endl;
+        for (int entry = start; entry < end; ++entry)
+        {
+        	get_dataset_entry(entry);
+        	if ((get_value("pt") > 20) && 
+        		(get_value("pt") < 10000) && 
+        		(get_value("flavor_truth_label") < 8))
+        	{
+        		ptr = 0;
+        		std::vector<double> predicted_values((Net->test(transform(input()))));
+        		for (auto &prob : predicted_values)
+        		{
+        			if (ptr != 0)
+					{
+						std::cout << ", "
+					}
+        			std::cout << prob;
+        			ptr++;
+        		}
+        		auto perf_values = get_performance_map(perf_variables);
+        		for (auto &name : perf_variables)
+        		{
+        			std::cout << ", " << perf_values[name];
+        		}
+        		std::cout << "\n";
+        	}
+        }
+    }
+		else
+		{
+			ofstream write_file (write_filename);
+	            if (write_file.is_open()) 
+	            {
+	                write_file << "weight, prob_u, prob_b, prob_c";
+	                write_file << ", light, bottom, charm";
+	                write_file << ", Jet_pT, Jet_eta, MV1";
+	                write_file << ", logCB_jfcombnn, logCU_jfcombnn, logBU_jfcombnn";
+	                write_file << ", jfc_u, jfc_b, jfc_c\n";
+	                for (int entry = n_train; entry < (upper); ++entry) 
+	                {
+	                    tree->GetEntry(entry);
+	                    
+	                    if (event.pt >= 20)
+	                    {
+	                        std::vector<double> tags = get_tags(event);
+	                        get_predictors(event, ENTRY);
+	                        std::vector<double> val = net.predict(ENTRY);
+	                        std::vector<double> eff_entry;
+	                        eff_entry.push_back(log(val[2] / val[0]));
+	                        eff_entry.push_back(log(val[2] / val[1]));
+	                        eff_entry.push_back(tags[0]);
+	                        eff_entry.push_back(tags[1]);
+	                        eff_entry.push_back(tags[2]);
+	                        eff_array.push_back(eff_entry);
+	                        write_file << re_weight(event) << ", ";
+	                        for(auto entry : val) 
+	                        {
+	                            write_file << std::setprecision(8) << entry << ", ";
+	                        }
+	                        write_file << tags[0] << ", " << tags[1] << ", " << tags[2];
+	                        write_file << ", " << event.pt << ", " << event.eta << ", " << mv1;
+	                        write_file << ", " << combNN_outs.logCbJetFitterCOMBNN <<  ", " << combNN_outs.logCuJetFitterCOMBNN << ", " << combNN_outs.logBuJetFitterCOMBNN;
+	                        write_file << ", " << jfc.Likelihood_u << ", " << jfc.Likelihood_b << ", " << jfc.Likelihood_c << "\n";
+	                    }
+
+	                    pct = (((double)(entry - n_train)) / ((double) (n_test))) * 100;
+	                    progress_bar(pct);
+	                    // std::cout << std::setprecision(3) << "\rGetting predictions: " << std::setw(3) << pct << std::setw(3) << "% complete.";           
+	                }
+	            }
+		}
+}
+
+
+
 bool NeuralNet::load_specifications(const std::string &filename)
 {
 	std::string line;

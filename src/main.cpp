@@ -48,8 +48,7 @@ int main(int argc, char *argv[])
          memory = false,
          resume = false,
          struct_flag = false,
-         encode = false,
-         sse_flag = false;
+         encode = false;
 
     int n_train = 0, 
         n_test = 0, 
@@ -104,10 +103,6 @@ int main(int argc, char *argv[])
                 load_flag = true;
                 ++i;
             }
-            else if ((std::string(argv[i]) == "-sse")) 
-            {
-                sse_flag = true;
-            } 
             else if ((std::string(argv[i]) == "-w") && !(write_flag))  
             {
                 write_filename = std::string(argv[i + 1]);
@@ -216,7 +211,7 @@ int main(int argc, char *argv[])
         structure.push_back(20);   
         structure.push_back(7);
     }
-    NeuralNet net(structure, classification, sse_flag);
+    NeuralNet net(structure);
 //-----------------------------------------------------------------------------
 //  Train from ROOT file
 //-----------------------------------------------------------------------------
@@ -258,113 +253,14 @@ int main(int argc, char *argv[])
 //  Loading from previous session
 //-----------------------------------------------------------------------------
 
-    // else 
-    // {
-    //     std::cout << "\nLoading NeuralNet file:";
-    //     net.load(net_file);
-    //     std::cout << std::setw(7) << "Done." << std::endl;
-    //     //----------------------------------------------------------------------------
-    //     tree->SetBranchAddress("charm", &event.charm);
-    //     tree->SetBranchAddress("bottom", &event.bottom);
-    //     tree->SetBranchAddress("light", &event.light);
-    //     tree->SetBranchAddress("cat_pT", &event.cat_pT);
-    //     tree->SetBranchAddress("cat_eta", &event.cat_eta);
-    //     // tree->SetBranchAddress("energyFraction", &event.energyFraction);
-    //     // tree->SetBranchAddress("mass", &event.mass);
-    //     // tree->SetBranchAddress("significance3d", &event.significance3d);
-    //     // tree->SetBranchAddress("nVTX", &event.nVTX);
-    //     // tree->SetBranchAddress("nTracksAtVtx", &event.nTracksAtVtx);
-    //     // tree->SetBranchAddress("nSingleTracks", &event.nSingleTracks);
-    //     // tree->SetBranchAddress("meanTrackRapidity", &event.meanTrackRapidity);
-    //     // tree->SetBranchAddress("minTrackRapidity", &event.minTrackRapidity);
-    //     // tree->SetBranchAddress("maxTrackRapidity", &event.maxTrackRapidity);
-    //     // tree->SetBranchAddress("maxSecondaryVertexRho", &event.maxSecondaryVertexRho);
-    //     // tree->SetBranchAddress("subMaxSecondaryVertexRho", &event.subMaxSecondaryVertexRho);
-    //     // tree->SetBranchAddress("SVInfoPlus_mass", &event.SVInfoPlus_mass);
-    //     // tree->SetBranchAddress("SVInfoPlus_energyfrac", &event.SVInfoPlus_energyfrac);
-    //     // tree->SetBranchAddress("SVInfoPlus_normdist", &event.SVInfoPlus_normdist);
-    //     // tree->SetBranchAddress("n_SVInfoPlus_gt_svx", &event.n_SVInfoPlus_gt_svx);
-    //     // tree->SetBranchAddress("n_SVInfoPlus_2t", &event.n_SVInfoPlus_2t);
-    //     // tree->SetBranchAddress("IP3D", &event.IP3D);
-    //     tree->SetBranchAddress("pt", &event.pt);
-    //     tree->SetBranchAddress("eta", &event.eta);
-    //     //----------------------------------------------------------------------------
-    //     if (!n_test) 
-    //     {
-    //         n_test = tree->GetEntries();
-    //     }
+    else 
+    {
+        std::cout << "\nLoading NeuralNet file:";
+        net.load(net_file);
 
-    //     double pct;
-    //     //----------------------------------------------------------------------------
-    //     std::cout << "Calculating posteriors for CharmTagger:\nWorking:\n";
-    //     std::vector<std::vector<double> > eff_array;
-    //     double mv1, mv1c;
-    //     combNN combNN_outs;
-    //     JFC jfc;
-    //     tree->SetBranchAddress("logCbJetFitterCOMBNN", &combNN_outs.logCbJetFitterCOMBNN);
-    //     tree->SetBranchAddress("logCuJetFitterCOMBNN", &combNN_outs.logCuJetFitterCOMBNN);
-    //     tree->SetBranchAddress("logBuJetFitterCOMBNN", &combNN_outs.logBuJetFitterCOMBNN);
-
-    //     tree->SetBranchAddress("Likelihood_u", &jfc.Likelihood_u);
-    //     tree->SetBranchAddress("Likelihood_c", &jfc.Likelihood_c);
-    //     tree->SetBranchAddress("Likelihood_b", &jfc.Likelihood_b);
-
-    //     tree->SetBranchAddress("discriminatorMV1", &mv1);
-    //     std::vector<double> ENTRY(19);
-    //     int upper = n_train + n_test;
-    //     upper = (upper > tree->GetEntries() ? tree->GetEntries() : upper);
-    //     // cout << "HERE" << endl;
-    //     if (write_flag) 
-    //     {
-    //         ofstream write_file (write_filename);
-    //         if (write_file.is_open()) 
-    //         {
-    //             write_file << "weight, prob_u, prob_b, prob_c";
-    //             write_file << ", light, bottom, charm";
-    //             write_file << ", Jet_pT, Jet_eta, MV1";
-    //             write_file << ", logCB_jfcombnn, logCU_jfcombnn, logBU_jfcombnn";
-    //             write_file << ", jfc_u, jfc_b, jfc_c\n";
-    //             for (int entry = n_train; entry < (upper); ++entry) 
-    //             {
-    //                 tree->GetEntry(entry);
-                    
-    //                 if (event.pt >= 20)
-    //                 {
-    //                     std::vector<double> tags = get_tags(event);
-    //                     get_predictors(event, ENTRY);
-    //                     std::vector<double> val = net.predict(ENTRY);
-    //                     std::vector<double> eff_entry;
-    //                     eff_entry.push_back(log(val[2] / val[0]));
-    //                     eff_entry.push_back(log(val[2] / val[1]));
-    //                     eff_entry.push_back(tags[0]);
-    //                     eff_entry.push_back(tags[1]);
-    //                     eff_entry.push_back(tags[2]);
-    //                     eff_array.push_back(eff_entry);
-    //                     write_file << re_weight(event) << ", ";
-    //                     for(auto entry : val) 
-    //                     {
-    //                         write_file << std::setprecision(8) << entry << ", ";
-    //                     }
-    //                     write_file << tags[0] << ", " << tags[1] << ", " << tags[2];
-    //                     write_file << ", " << event.pt << ", " << event.eta << ", " << mv1;
-    //                     write_file << ", " << combNN_outs.logCbJetFitterCOMBNN <<  ", " << combNN_outs.logCuJetFitterCOMBNN << ", " << combNN_outs.logBuJetFitterCOMBNN;
-    //                     write_file << ", " << jfc.Likelihood_u << ", " << jfc.Likelihood_b << ", " << jfc.Likelihood_c << "\n";
-    //                 }
-
-    //                 pct = (((double)(entry - n_train)) / ((double) (n_test))) * 100;
-    //                 progress_bar(pct);
-    //                 // std::cout << std::setprecision(3) << "\rGetting predictions: " << std::setw(3) << pct << std::setw(3) << "% complete.";           
-    //             }
-    //         }
-    //         else 
-    //         {
-    //             std::cout << "Error: Unable to create file to catch output stream. Terminating with with error." << std::endl;
-    //             return -1;
-    //         }
-    //         write_file.close();
-    //     }
-    //     //----------------------------------------------------------------------------
-    // }
+        net.write_perf("", n_train, n_test);
+        //----------------------------------------------------------------------------
+    }
 
 //-----------------------------------------------------------------------------
 //  If we save the neural net that we've just trained

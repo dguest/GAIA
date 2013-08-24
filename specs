@@ -1,28 +1,29 @@
 output:
-charm, int 
-bottom, int
 light, int
+bottom, int
+charm, int 
+
  
 input:    
-nVTX, int 
-nTracksAtVtx, int 
-nSingleTracks, int 
-n_SVInfoPlus_gt_svx, int 
-n_SVInfoPlus_2t, int
-energyFraction, double
-mass, double 
-significance3d, double  
-meanTrackRapidity, double
-minTrackRapidity, double 
-maxTrackRapidity, double 
-maxSecondaryVertexRho, double 
-subMaxSecondaryVertexRho, double 
-SVInfoPlus_mass, double 
-SVInfoPlus_energyfrac, double 
-SVInfoPlus_normdist, double 
-IP3D, double 
-cat_pT, int 
+IP3D, double
+cat_pT, int
 cat_eta, int
+energyFraction, double
+mass, double
+significance3d, double
+nVTX, int
+nTracksAtVtx, int
+nSingleTracks, int
+meanTrackRapidity, double
+minTrackRapidity, double
+maxTrackRapidity, double
+maxSecondaryVertexRho, double
+subMaxSecondaryVertexRho, double
+SVInfoPlus_mass, double
+SVInfoPlus_energyfrac, double
+SVInfoPlus_normdist, double
+n_SVInfoPlus_gt_svx, int
+n_SVInfoPlus_2t, int
 
 control:
 JetPt, double
@@ -31,3 +32,5 @@ logCbJetFitterCOMBNN, double
 logCuJetFitterCOMBNN, double
 logBuJetFitterCOMBNN, double
 discriminatorMV1, double
+
+

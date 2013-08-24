@@ -27,7 +27,7 @@ class NeuralNet
 {
 public:
 //----------------------------------------------------------------------------
-	NeuralNet( std::vector<int> structure, ann_type this_net, bool sse_err_func );
+	NeuralNet( std::vector<int> structure);
 	NeuralNet();
 	~NeuralNet();
 	NeuralNet( NeuralNet &A );
@@ -73,6 +73,8 @@ public:
 	bool save( const std::string &filename );
 	bool load( const std::string &filename );
 
+	bool write_perf( const std::string &filename = "" , int start = 0, int end = 10000);
+
 	void encode(std::vector<std::vector<double>> input, std::vector<double> weight, bool verbose);
 	void encode(bool verbose = 1);
 private:
@@ -87,7 +89,6 @@ private:
 
 	std::vector<int> structure;
 	int count;
-	bool regress, sse;
 	std::vector<double> mean, stddev;
 	double (*_sigmoid_derivative) (double);
 	std::vector<double> (*_softmax_function) (std::vector<double>);

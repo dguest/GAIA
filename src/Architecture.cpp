@@ -7,10 +7,13 @@
 
 
 //----------------------------------------------------------------------------
-Architecture::Architecture(std::vector<int> structure, ann_type this_net, \
+Architecture::Architecture(std::vector<int> structure, 
 	                       std::vector<double> (*sigmoid_function) (std::vector<double>), 
-	                       double (*sigmoid_derivative) (double)):\
-structure( structure ), this_net( this_net ), _sigmoid_derivative(sigmoid_derivative), _sigmoid_function(sigmoid_function), is_denoising(false)
+	                       double (*sigmoid_derivative) (double)) : 
+                           structure( structure ),  
+                           _sigmoid_derivative(sigmoid_derivative), 
+                           _sigmoid_function(sigmoid_function), 
+                           is_denoising( false )
 {
 	layers = structure.size();
 	int l;
@@ -19,9 +22,7 @@ structure( structure ), this_net( this_net ), _sigmoid_derivative(sigmoid_deriva
 	{
 		final = ((l == (layers - 2)) ? true : false);
 		Bundle.push_back( std::move(std::unique_ptr<Layer>(new Layer(structure.at(l), structure.at(l + 1), final, _sigmoid_function))) );
-		// Bundle.at(l)->make_denoising();
 	}
-	regress = ((this_net == regression) ? true : false);
 	layers = Bundle.size();
 	lambda = 0;
 }
@@ -72,10 +73,9 @@ void Architecture::anneal(double x)
 void Architecture::backpropagate(
 	std::vector<double> error,  /* needs to be (estimated - actual) */
 	std::vector<double> Event,
-	double weight 
-	) 
+	double weight ) 
 {
-	Bundle.at(layers - 1)->setDelta( error );
+	Bundle.at(layers - 1)->setDelta( error ); 
 	double val;
 
 	for (int l = layers - 1; l > 0; l--) 
@@ -90,12 +90,13 @@ void Architecture::backpropagate(
 			Bundle.at(l - 1)->Delta.at(i) = val;
 		}
 	}
+
 	for (int l = layers - 1; l > 0; l--) 
 	{ //for each layer in the neural net
 		for (int i = 0; i < structure.at(l + 1); ++i) 
 		{
 	    	int j;
-	    	for (j = 0; j <  structure.at(l); ++j) //not plus one because of bias 	
+	    	for (j = 0; j <  structure.at(l); j++) //not plus one because of bias 	
 	    	{
 	    		Bundle.at(l)->set(j, i, weight * (-eta * Bundle.at(l)->Delta.at(i) * Bundle.at(l - 1)->Outs.at(j) - lambda * Bundle.at(l)->Synapse.at(j).at(i)));
 	    	}
@@ -106,7 +107,7 @@ void Architecture::backpropagate(
     {
     	int j;
     	//not plus one because of bias 
-    	for (j = 0; j < Bundle.at(0)->ins; ++j)
+    	for (j = 0; j < Bundle.at(0)->ins; j++)
     	{
     		Bundle.at(0)->set(j, i, weight * (-eta * Bundle.at(0)->Delta.at(i) * Event.at(j) - lambda * Bundle.at(0)->Synapse.at(j).at(i)));
     	}
@@ -145,11 +146,11 @@ void Architecture::encode(std::vector<std::vector<double>> input, double learnin
 		idx = 0;
 		for (auto jet : input) // The first layer needs to be done by itself.
 		{
-			// std::cout << "Original: " << std::endl;
-			// vector_print(jet);
+			std::cout << "Original: " << std::endl;
+			vector_print(jet);
 			Bundle.at(0)->encode(jet, learning, weight.at(idx)); // Initialize the first layer of PCA
-			// std::cout << "Reconstructed" << std::endl;
-			// vector_print(Bundle.at(0)->getReconstructedInput(jet));
+			std::cout << "Reconstructed" << std::endl;
+			vector_print(Bundle.at(0)->getReconstructedInput(jet));
 			++idx;
 			++ctr;
 			

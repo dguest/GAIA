@@ -1,34 +1,20 @@
 input:
 cat_pT, int
 cat_eta, int
-jfit_nvtx, int
-ipplus_trk_n, int
-svp_n2t, int
-svp_trk_n, int
 nSingleTracks, int
 nTracks, int
 nTracksAtVtx, int
 nVTX, int
 SV1, double
 SV0, double
-ip3d_pu, double
 ip3d_pb, double
+ip3d_pu, double
 ip3d_pc, double
-ip3d_valid, int
 jfit_efrc, double
 jfit_mass, double
 jfit_sig3d, double
-jfit_deltaEta, double
 svp_mass, double
 svp_efrc, double
-sv0p_mass, double
-sv0p_efrc, double
-jfitvx_theta, double
-jfitvx_phi, double
-jfitvx_errtheta, double
-jfitvx_errphi, double
-deltaeta, double
-deltaphi, double
 energyFraction, double
 mass, double
 maxSecondaryVertexRho, double
@@ -37,11 +23,16 @@ meanTrackRapidity, double
 minTrackRapidity, double
 significance3d, double
 subMaxSecondaryVertexRho, double
+jfit_nvtx, int
+jfit_nvtx1t, int
+jfit_ntrkAtVx, int
+
 
 control:
 pt, double
 eta, double
 MV1, double
+flavor_truth_label, int
 
 
 

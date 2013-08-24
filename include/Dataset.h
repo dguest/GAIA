@@ -49,6 +49,7 @@ public:
 	void at( const int index );
 	std::vector<double> &input();
 	std::vector<double> &output();
+	std::vector<std::string> get_output_vars();
 	unsigned int num_entries();
 	double get_physics_reweighting();
 	void determine_reweighting();

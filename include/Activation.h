@@ -13,7 +13,6 @@
 #include <vector>
 #include <utility>
 
-enum ann_type { regression, classification };
 double sig(double x);
 double dsig(double x);
 

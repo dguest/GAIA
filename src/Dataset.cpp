@@ -1,4 +1,6 @@
 #include "Dataset.h"
+#include "Activation.h"
+#include "VarUtils.h"
 #include <cmath>
 
 struct Numeric;
@@ -42,6 +44,10 @@ Dataset::~Dataset()
 	}
 }
 
+std::vector<std::string> Dataset::get_output_vars()
+{
+	return output_vars;
+}
 
 //----------------------------------------------------------------------------
 bool Dataset::set_input_branch(std::string name, std::string type)
@@ -180,17 +186,18 @@ std::vector<double> &Dataset::input()
 {
 	unsigned int ptr = 0;
 
-	for (auto &name : input_vars)
+	for (auto name : input_vars)
 	{
 		m_input[ptr] = cast_as_double(*(variables[name]));
 		++ptr;
 	}
+
 	return m_input;
 }
 std::vector<double> &Dataset::output()
 {
 	unsigned int ptr = 0;
-	for (auto &name : output_vars)
+	for (auto name : output_vars)
 	{
 		m_output[ptr] = cast_as_double(*(variables[name]));
 		++ptr;
@@ -299,6 +306,11 @@ void Dataset::determine_reweighting()
 	// }
 	reweighting.charm_correction = charm_correction;
 	reweighting.bottom_correction = bottom_correction;
+
+	// Event evt;
+
+	// reweighting.charm_correction = evt.charm_correction;
+	// reweighting.bottom_correction = evt.bottom_correction;
 }
 
 
@@ -306,15 +318,15 @@ inline double cast_as_double(Numeric number)
 {
 	if (number.isInt)
 	{
-		return (double) number.int_;
+		return static_cast<double>(number.int_);
 	}
 	else if (number.isFlt)
 	{
-		return (double) number.float_;
+		return static_cast<double>(number.float_);
 	}
 	else if (number.isDbl)
 	{
-		return (double) number.double_;
+		return static_cast<double>(number.double_);
 	}
 }
 
@@ -322,15 +334,15 @@ inline int cast_as_int(Numeric number)
 {
 	if (number.isInt)
 	{
-		return (int) number.int_;
+		return static_cast<int>(number.int_);
 	}
 	else if (number.isFlt)
 	{
-		return (int) number.float_;
+		return static_cast<int>(number.float_);
 	}
 	else if (number.isDbl)
 	{
-		return (int) number.double_;
+		return static_cast<int>(number.double_);
 	}
 }
 

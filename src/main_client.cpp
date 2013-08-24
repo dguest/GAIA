@@ -89,15 +89,16 @@ int main(int argc, char *argv[])
 //-----------------------------------------------------------------------------
 // Catch logical errors
 //-----------------------------------------------------------------------------
-    if ((!(load_flag))) 
+
+    if (net_file.empty())) 
     {
         std::cout << "Error: Executable must be passed a neural net file" << std::endl;
         return -1;
     }
 
-    if ((!struct_flag) & (!load_flag)) 
+    if (write_filename.empty()) 
     {
-        std::cout << "Error: Executable must be passed a neural network structure." << std::endl;
+        std::cout << "Error: Executable must be passed a filename to write ." << std::endl;
         return -1;
     }
     if ((resume) & (!load_flag)) 
@@ -112,12 +113,9 @@ int main(int argc, char *argv[])
 //-----------------------------------------------------------------------------
 //  Create a default network for analysis
 //-----------------------------------------------------------------------------
-    if (load_flag) 
-    {
-        structure.push_back(18);
-        structure.push_back(20);   
-        structure.push_back(7);
-    }
+    structure.push_back(18);
+    structure.push_back(20);   
+    structure.push_back(7);
     NeuralNet net(structure, classification, sse_flag);
 //-----------------------------------------------------------------------------
 //  Train from ROOT file
