@@ -49,6 +49,11 @@ std::vector<std::string> Dataset::get_output_vars()
 	return output_vars;
 }
 
+std::vector<std::string> Dataset::get_input_vars()
+{
+	return input_vars;
+}
+
 //----------------------------------------------------------------------------
 bool Dataset::set_input_branch(std::string name, std::string type)
 {
@@ -259,7 +264,7 @@ void Dataset::determine_reweighting()
 	for (int i = 0; i < n_estimate; ++i)
 	{
 		at(i);
-		if ((fabs(get_value("eta")) < 2.5) && (get_value("pt") > 25))
+		if ((fabs(get_value("eta")) < 2.5) && (get_value("pt") > 20) && (get_value("flavor_truth_label") < 8) && (get_value("pt") < 1000))
 		{
 			if (cast_as_int(*variables["light"]) == 1)
 			{
@@ -280,30 +285,30 @@ void Dataset::determine_reweighting()
 	{
 		for (int cat_eta = 0; cat_eta < 4; ++cat_eta)
 		{
-			bottom_correction[cat_pT][cat_eta] = std::min(std::max(light_hist[cat_pT][cat_eta], 1.0) / std::max(bottom_hist[cat_pT][cat_eta], 1.0), 20.0);
-			charm_correction[cat_pT][cat_eta] = std::min(std::max(light_hist[cat_pT][cat_eta], 1.0) / (2 * std::max(charm_hist[cat_pT][cat_eta], 1.0)), 20.0);
+			bottom_correction[cat_pT][cat_eta] = std::min(std::max(light_hist[cat_pT][cat_eta], 1.0) / ((5.17 / 4.0) * std::max(bottom_hist[cat_pT][cat_eta], 1.0)), 20.0);
+			charm_correction[cat_pT][cat_eta] = std::min(std::max(light_hist[cat_pT][cat_eta], 1.0) / (2.5 * std::max(charm_hist[cat_pT][cat_eta], 1.0)), 20.0);
 		}
 	}
 
-	// std::cout << "\nBottom Correction:" << std::endl;
-	// for (int i = 0; i < 7; ++i)
-	// {
-	// 	for (int j = 0; j < 4; ++j)
-	// 	{
-	// 		std::cout << bottom_correction[i][j] << "   ";
-	// 	}
-	// 	std::cout << "\n";
-	// }
+	std::cout << "\nBottom Correction:" << std::endl;
+	for (int i = 0; i < 7; ++i)
+	{
+		for (int j = 0; j < 4; ++j)
+		{
+			std::cout << bottom_correction[i][j] << "   ";
+		}
+		std::cout << "\n";
+	}
 
-	// std::cout << "\nCharm Correction:" << std::endl;
-	// for (int i = 0; i < 7; ++i)
-	// {
-	// 	for (int j = 0; j < 4; ++j)
-	// 	{
-	// 		std::cout << charm_correction[i][j] << "   ";
-	// 	}
-	// 	std::cout << "\n";
-	// }
+	std::cout << "\nCharm Correction:" << std::endl;
+	for (int i = 0; i < 7; ++i)
+	{
+		for (int j = 0; j < 4; ++j)
+		{
+			std::cout << charm_correction[i][j] << "   ";
+		}
+		std::cout << "\n";
+	}
 	reweighting.charm_correction = charm_correction;
 	reweighting.bottom_correction = bottom_correction;
 

@@ -6,6 +6,7 @@
 #include "NeuralNet.h"
 #include "Architecture.h"
 #include "VarUtils.h"
+#include <utility>
 
 //----------------------------------------------------------------------------
 NeuralNet::NeuralNet(std::vector<int> structure): 
@@ -145,40 +146,62 @@ void NeuralNet::setActivationFunctions(std::vector<double> (*sigmoid_function) (
 	_sigmoid = sigmoid_function;
 }
 //----------------------------------------------------------------------------
-void NeuralNet::train(int n_epochs, int n_train, std::string save_filename, bool verbose, std::string timestamp)
+void NeuralNet::train(int n_epochs, int n_train, std::string save_filename, bool verbose, std::string timestamp, bool memory)
 {
-	dataset->determine_reweighting();
 	double pct;
-	for (int i = 0; i < n_epochs; ++i) 
-    {
-    	save(".temp_progress_" + save_filename + std::to_string(i) + "_"+ timestamp + ".nnet"); //save a progress file in case we need to kill the process.
-        for (int entry = 0; entry < n_train; entry++) 
-        {
-        	get_dataset_entry(entry);
-        	// std::cout << "pT = " << get_value("pt") << ", and eta = " << get_value("eta") << std::endl;
-            // if ((get_value("pt") < 500) && (fabs(get_value("eta")) < 2.5))
-            if ((get_value("pt") > 20) && (fabs(get_value("eta")) < 2.5) && (get_value("flavor_truth_label") < 8) && (get_value("pt") < 500))
-            {
-            	// std::cout << "And we train..." << std::endl;
-            	// get_dataset_entry(entry);
-            	// vector_print(output());
-            	// vector_print(_softmax_function(Net->test( transform(input()))));
-        		train(input(), output(), get_physics_reweighting());
-            }
+	if(!memory)
+	{
+		for (int i = 0; i < n_epochs; ++i) 
+	    {
+	    	save(".temp_progress_" + save_filename + std::to_string(i) + "_"+ timestamp + ".nnet"); //save a progress file in case we need to kill the process.
+	        for (int entry = 0; entry < n_train; entry++) 
+	        {
+	        	get_dataset_entry(entry);
+	        	// std::cout << "pT = " << get_value("pt") << ", and eta = " << get_value("eta") << std::endl;
+	            // if ((get_value("pt") < 500) && (fabs(get_value("eta")) < 2.5))
+	            if ((get_value("pt") > 20) && (fabs(get_value("eta")) < 2.5) && (get_value("flavor_truth_label") < 8) && (get_value("pt") < 1000))
+	            {
+	            	// std::cout << "And we train..." << std::endl;
+	            	// get_dataset_entry(entry);
+	            	// vector_print(output());
+	            	// vector_print(_softmax_function(Net->test( transform(input()))));
+	        		train(input(), output(), get_physics_reweighting());
+	            }
 
-            pct = (((double)(entry)) / ((double) (n_train))) * 100;
-            if (verbose)
-            {
-                epoch_progress_bar(pct, i + 1, n_epochs);
-            }
-            else
-            {
-				vector_print(transform(input()));
-				std::cout << "\n";
-            }
-        }
-        
-    }
+	            pct = (((double)(entry)) / ((double) (n_train))) * 100;
+	            if (verbose)
+	            {
+	                epoch_progress_bar(pct, i + 1, n_epochs);
+	            }
+	            else
+	            {
+					vector_print(transform(input()));
+					std::cout << "\n";
+	            }
+	        }
+	        
+	    }
+	}
+	else
+	{
+		std::cout <<"here" << std::endl;
+		int n = weights_mem.size();
+		for (int i = 0; i < n_epochs; ++i) 
+	    {
+	    	save(".temp_progress_" + save_filename + std::to_string(i) + "_"+ timestamp + ".nnet"); //save a progress file in case we need to kill the process.
+	        for (int entry = 0; entry < n; entry++) 
+	        {
+	        	train(dataset_mem.at(entry), labels_mem.at(entry), weights_mem.at(entry));
+
+	            pct = (((double)(entry)) / ((double) (n))) * 100;
+	            if (verbose)
+	            {
+	                epoch_progress_bar(pct, i + 1, n_epochs);
+	            }
+	        }
+	        
+	    }
+	}
     if (verbose)
     {
     	std::cout << "Saving parameters to " << save_filename << "." << std::endl; 
@@ -208,9 +231,10 @@ std::vector<double> NeuralNet::predict(std::vector<double> Event)
 	return std::move(_softmax_function(Net->test( transform(Event) )));
 }
 //----------------------------------------------------------------------------
-void NeuralNet::getTransform(bool verbose, bool into_memory) 
+void NeuralNet::getTransform(bool verbose, bool into_memory, int n_train) 
 {
-	int n_estimate = (dataset->num_entries() / 20);
+	dataset->determine_reweighting();
+	int n_estimate = ((n_train < 0) ? (dataset->num_entries() / 20) : n_train);
 	unsigned int n = 0;
 	double pct, temp;    
 	if (verbose)
@@ -228,13 +252,15 @@ void NeuralNet::getTransform(bool verbose, bool into_memory)
 	for (int i = 0; i < n_estimate; ++i)
 	{
 		dataset->at(i);
-		if (/*(get_value("pt") > 25) && (fabs(get_value("eta")) < 2.5)*/true)
+		if ((get_value("pt") > 20) && (fabs(get_value("eta"))) < 2.5 && (get_value("flavor_truth_label") < 8) && (get_value("pt") < 1000))
 		{
 			++n;
 		    ENTRY = dataset->input();
 		    if (into_memory)
 		    {
+		    	auto labels = dataset->output();
 		    	dataset_mem.push_back(ENTRY);
+		    	labels_mem.push_back(labels);
 		    	weights_mem.push_back(get_physics_reweighting());
 		    }
 		     // online, numerically stable algorithm 
@@ -485,14 +511,14 @@ bool NeuralNet::write_perf( const std::string &filename, int start, int end)
 											 "light"};
 	if (filename.empty())
 	{
-
+		std::cout << std::endl;
 		auto output_variables = dataset->get_output_vars();
 		int ptr = 0;
 		for (auto &name : output_variables)
 		{	
 			if (ptr != 0)
 			{
-				std::cout << ", "
+				std::cout << ", ";
 			}
 			std::cout << "prob_" << name;
 			++ptr;
@@ -511,17 +537,17 @@ bool NeuralNet::write_perf( const std::string &filename, int start, int end)
         		(get_value("flavor_truth_label") < 8))
         	{
         		ptr = 0;
-        		std::vector<double> predicted_values((Net->test(transform(input()))));
+        		std::vector<double> predicted_values(_softmax_function(Net->test(transform(input() ))));
         		for (auto &prob : predicted_values)
         		{
         			if (ptr != 0)
 					{
-						std::cout << ", "
+						std::cout << ", ";
 					}
         			std::cout << prob;
         			ptr++;
         		}
-        		auto perf_values = get_performance_map(perf_variables);
+        		auto perf_values = dataset->get_performance_map(perf_variables);
         		for (auto &name : perf_variables)
         		{
         			std::cout << ", " << perf_values[name];
@@ -530,49 +556,57 @@ bool NeuralNet::write_perf( const std::string &filename, int start, int end)
         	}
         }
     }
-		else
-		{
-			ofstream write_file (write_filename);
-	            if (write_file.is_open()) 
-	            {
-	                write_file << "weight, prob_u, prob_b, prob_c";
-	                write_file << ", light, bottom, charm";
-	                write_file << ", Jet_pT, Jet_eta, MV1";
-	                write_file << ", logCB_jfcombnn, logCU_jfcombnn, logBU_jfcombnn";
-	                write_file << ", jfc_u, jfc_b, jfc_c\n";
-	                for (int entry = n_train; entry < (upper); ++entry) 
-	                {
-	                    tree->GetEntry(entry);
-	                    
-	                    if (event.pt >= 20)
-	                    {
-	                        std::vector<double> tags = get_tags(event);
-	                        get_predictors(event, ENTRY);
-	                        std::vector<double> val = net.predict(ENTRY);
-	                        std::vector<double> eff_entry;
-	                        eff_entry.push_back(log(val[2] / val[0]));
-	                        eff_entry.push_back(log(val[2] / val[1]));
-	                        eff_entry.push_back(tags[0]);
-	                        eff_entry.push_back(tags[1]);
-	                        eff_entry.push_back(tags[2]);
-	                        eff_array.push_back(eff_entry);
-	                        write_file << re_weight(event) << ", ";
-	                        for(auto entry : val) 
-	                        {
-	                            write_file << std::setprecision(8) << entry << ", ";
-	                        }
-	                        write_file << tags[0] << ", " << tags[1] << ", " << tags[2];
-	                        write_file << ", " << event.pt << ", " << event.eta << ", " << mv1;
-	                        write_file << ", " << combNN_outs.logCbJetFitterCOMBNN <<  ", " << combNN_outs.logCuJetFitterCOMBNN << ", " << combNN_outs.logBuJetFitterCOMBNN;
-	                        write_file << ", " << jfc.Likelihood_u << ", " << jfc.Likelihood_b << ", " << jfc.Likelihood_c << "\n";
-	                    }
+    else
+    {
+    	ofstream file( filename );
+    	if(file.is_open())
+    	{
+			auto output_variables = dataset->get_output_vars();
+			int ptr = 0;
+			for (auto &name : output_variables)
+			{	
+				if (ptr != 0)
+				{
+					file << ", ";
+				}
+				file << "prob_" << name;
+				++ptr;
+			}
 
-	                    pct = (((double)(entry - n_train)) / ((double) (n_test))) * 100;
-	                    progress_bar(pct);
-	                    // std::cout << std::setprecision(3) << "\rGetting predictions: " << std::setw(3) << pct << std::setw(3) << "% complete.";           
-	                }
-	            }
-		}
+	        for (auto &name : perf_variables)
+	        {
+	        	file << ", " << name;
+	        }
+	        file << std::endl;
+	        for (int entry = start; entry < end; ++entry)
+	        {
+	        	get_dataset_entry(entry);
+	        	if ((get_value("pt") > 20) && 
+	        		(get_value("pt") < 10000) && 
+	        		(get_value("flavor_truth_label") < 8))
+	        	{
+	        		ptr = 0;
+	        		std::vector<double> predicted_values(_softmax_function(Net->test(transform(input() ))));
+	        		for (auto &prob : predicted_values)
+	        		{
+	        			if (ptr != 0)
+						{
+							file << ", ";
+						}
+	        			file << prob;
+	        			ptr++;
+	        		}
+	        		auto perf_values = dataset->get_performance_map(perf_variables);
+	        		for (auto &name : perf_variables)
+	        		{
+	        			file << ", " << perf_values[name];
+	        		}
+	        		file << "\n";
+	        	}
+	        }
+	        file.close();
+	    }
+    }
 }
 
 
@@ -651,6 +685,29 @@ bool NeuralNet::load_specifications(const std::string &filename)
     	}
     }
     return FILE.good();
+}
+
+
+std::vector<std::string> NeuralNet::get_ranking()
+{
+	auto variable_list = dataset->get_input_vars();
+	unsigned int num_vars = variable_list.size();
+	std::vector<DictElement> contribution;;
+	auto First_Layer = Net->get_first_layer();
+	std::vector<std::string> ranked;
+	for (int i = 0; i < num_vars; ++i)
+	{
+		contribution.push_back(std::make_pair(variable_list.at(i), get_row_sum(First_Layer, i)));
+	}
+
+	_ranking_comparison comparison_operator;
+
+	std::sort(contribution.begin(), contribution.end(), comparison_operator);
+	for (auto &entry : contribution)
+	{
+		ranked.push_back(entry.first);
+	}
+	return ranked;
 }
 
 

@@ -191,6 +191,10 @@ void Architecture::encode(std::vector<std::vector<double>> input, double learnin
 	}
 }
 
+std::vector<std::vector<double>> Architecture::get_first_layer()
+{
+	return Bundle.at(0)->Synapse;
+}
 
 
 

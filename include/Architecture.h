@@ -32,7 +32,7 @@ public:
 	void encode(std::vector<std::vector<double>> input, double learning, std::vector<double> weight, bool verbose, int epochs = 5);
 	void setMomentum(double x);
 	void anneal(double x);
-
+	std::vector<std::vector<double>> get_first_layer();
 private:
 //----------------------------------------------------------------------------
 	friend class NeuralNet;

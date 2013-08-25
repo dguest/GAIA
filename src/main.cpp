@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
 // Declaratiion of command line parsing variables
 //-----------------------------------------------------------------------------
     std::string net_file, 
-                write_filename, 
+                write_filename = "", 
                 save_filename, 
                 string_struct, 
                 tree_name, 
@@ -234,7 +234,8 @@ int main(int argc, char *argv[])
             std::cout << "\nNormalizing input variables:\n";
         }
 
-        net.getTransform(verbose, memory);
+        int trans = (memory) ? n_train : -1;
+        net.getTransform(verbose, memory, trans);
 
         //Train the net!
         //----------------------------------------------------------------------------
@@ -247,7 +248,7 @@ int main(int argc, char *argv[])
         {
             net.encode(verbose);
         }
-        net.train(n_epochs, n_train, save_filename, verbose, _timestamp());        
+        net.train(n_epochs, n_train, save_filename, verbose, _timestamp(), memory);        
     }
 //-----------------------------------------------------------------------------
 //  Loading from previous session
@@ -258,26 +259,20 @@ int main(int argc, char *argv[])
         std::cout << "\nLoading NeuralNet file:";
         net.load(net_file);
 
-        net.write_perf("", n_train, n_test);
+        net.write_perf(write_filename, n_train, n_test + n_train);
+
+        auto ranking = net.get_ranking();
+
+        int ptr = 1;
+        std::cout << "Variable ranking:" <<std::endl;
+        for (auto &entry : ranking)
+        {
+            std::cout << ptr << ": " << entry << std::endl;
+            ++ptr;
+        }
         //----------------------------------------------------------------------------
     }
 
-//-----------------------------------------------------------------------------
-//  If we save the neural net that we've just trained
-//-----------------------------------------------------------------------------
-    // if (save_flag) 
-    // {
-    //     if (verbose)
-    //     {
-    //         std::cout << "\nSaving parameters to " << save_filename << ":";
-    //     }
-    //     net.save(save_filename);
-    //     if (verbose)
-    //     {
-    //         std::cout << std::setw(7) << "Done." << std::endl;
-    //     }
-    // }
-    // cin.ignore();
 	return 0;
 }
 //-----------------------------------------------------------------------------

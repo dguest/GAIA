@@ -23,6 +23,9 @@
 #include "Dataset.h"
 #include <assert.h>
 
+
+typedef std::pair<std::string, double> DictElement;
+
 class NeuralNet
 {
 public:
@@ -53,10 +56,10 @@ public:
 	void setMomentum( double x );
 	void anneal( double x );
 
-	void train(int n_epochs, int n_train, std::string save_filename, bool verbose = 0, std::string timestamp = "");
+	void train(int n_epochs, int n_train, std::string save_filename, bool verbose = 0, std::string timestamp = "", bool memory = false);
 	void train( std::vector<double> Event, std::vector<double> Actual, double weight = 1);
 
-	void getTransform(bool verbose = false, bool into_memory = 0);
+	void getTransform(bool verbose = false, bool into_memory = 0, int n_train = -1);
 	void setTransform( std::vector<double> Mean, std::vector<double> Stddev );
 
 
@@ -77,10 +80,12 @@ public:
 
 	void encode(std::vector<std::vector<double>> input, std::vector<double> weight, bool verbose);
 	void encode(bool verbose = 1);
+
+	std::vector<std::string> get_ranking();
 private:
 //----------------------------------------------------------------------------
 	std::unique_ptr<Dataset> dataset;
-	std::vector<std::vector<double> > dataset_mem;
+	std::vector<std::vector<double> > dataset_mem, labels_mem;
 	std::vector<double> weights_mem;
 
 	std::unique_ptr<Architecture> Net;
@@ -95,6 +100,27 @@ private:
 	std::vector<double> (*_sigmoid) (std::vector<double>);
 };
 
+template <typename T>
+inline T get_row_sum(std::vector<std::vector<T>> Array, unsigned int row_number)
+{
+	int n_cols = Array[0].size();
+	T sum = Array[0][row_number];
+	for (int i = 1; i < n_cols; ++i)
+	{
+		sum += Array.at(row_number).at(i);
+	}
+	return sum;
+}
+
+
+
+
+struct _ranking_comparison {
+	bool operator() (DictElement A, DictElement B) 
+	{
+		return (A.second < B.second);
+	}
+};
 
 
 
