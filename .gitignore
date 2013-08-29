@@ -1,2 +1,18 @@
+<<<<<<< HEAD
 bin/*.o
 *.o
+=======
+# Compiled Object files
+*.slo
+*.lo
+*.o
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+>>>>>>> 0ae2ee39d2dcf256c0b65eeedd719965315be993
