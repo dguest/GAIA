@@ -67,36 +67,14 @@ private:
 };
 
 
-
-
-
-
-
-
-
-
-
-// struct Specification
-// {
-// 	std::string root_file = "/Users/lukedeoliveira/Documents/root_files/perf_ntuple.root", 
-// 	            tree_name = "SVTree";
-// 	std::vector<std::pair<std::string, std::string>> input_types;
-// 	std::vector<std::pair<std::string, std::string>> output_types;
-// 	bool verbose = 0;
-// 	int n_entries, train, test;
-// };
-
 struct Numeric
 {
 	double double_;
-
 	float  float_;
-
 	int    int_;
-
-	bool   isDbl = 0, 
-	       isInt = 0,
-	       isFlt = 0; 
+	bool   isDbl = false, 
+	       isInt = false,
+	       isFlt = false; 
 };
 
 inline double cast_as_double(Numeric number);

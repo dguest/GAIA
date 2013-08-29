@@ -146,11 +146,11 @@ void Architecture::encode(std::vector<std::vector<double>> input, double learnin
 		idx = 0;
 		for (auto jet : input) // The first layer needs to be done by itself.
 		{
-			std::cout << "Original: " << std::endl;
-			vector_print(jet);
+			// std::cout << "Original: " << std::endl;
+			// vector_print(jet);
 			Bundle.at(0)->encode(jet, learning, weight.at(idx)); // Initialize the first layer of PCA
-			std::cout << "Reconstructed" << std::endl;
-			vector_print(Bundle.at(0)->getReconstructedInput(jet));
+			// std::cout << "Reconstructed" << std::endl;
+			// vector_print(Bundle.at(0)->getReconstructedInput(jet));
 			++idx;
 			++ctr;
 			

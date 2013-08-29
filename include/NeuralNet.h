@@ -107,7 +107,8 @@ inline T get_row_sum(std::vector<std::vector<T>> Array, unsigned int row_number)
 	T sum = Array[0][row_number];
 	for (int i = 1; i < n_cols; ++i)
 	{
-		sum += Array.at(row_number).at(i);
+		auto temp = (Array.at(row_number).at(i));
+		sum += (temp * temp);
 	}
 	return sum;
 }

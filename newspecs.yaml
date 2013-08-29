@@ -32,6 +32,13 @@ control:
 pt, double
 eta, double
 MV1, double
+jfitc_pu, double
+jfitc_pb, double
+jfitc_pc, double
+jfitcomb_pu, double
+jfitcomb_pb, double
+jfitcomb_pc, double
+
 flavor_truth_label, int
 
 

@@ -112,7 +112,6 @@ void Layer::encode(std::vector<double> input, double learning, double weight)
 	// std::cout << "\n";
 	// vector_print(input);
 	std::vector<double> identity_estimate(input);
-	// std::vector<double> representation(outs, 0.00);
 
 	input.push_back(1); // Add the bias term to the vector.
 
@@ -155,7 +154,7 @@ void Layer::encode(std::vector<double> input, double learning, double weight)
 		// std::cout << "input.at(i) = " << input.at(i) << std::endl;
 		// std::cout << "dsig(identity_estimate.at(i)) = " << dsig(identity_estimate.at(i)) << std::endl;
 		error.at(i) -= input.at(i);
-		error.at(i) = dsig(error.at(i)) * (error.at(i) - input.at(i));
+		// error.at(i) = dsig(error.at(i)) * (error.at(i) - input.at(i));
 		// error.at(i) = error.at(i) * (identity_estimate.at(i));
 	}
 

@@ -184,7 +184,6 @@ void NeuralNet::train(int n_epochs, int n_train, std::string save_filename, bool
 	}
 	else
 	{
-		std::cout <<"here" << std::endl;
 		int n = weights_mem.size();
 		for (int i = 0; i < n_epochs; ++i) 
 	    {
@@ -506,6 +505,12 @@ bool NeuralNet::write_perf( const std::string &filename, int start, int end)
 											 "pt",
 											 "eta",
 											 "MV1",
+											 "jfitc_pu",
+											 "jfitc_pb",
+											 "jfitc_pc",
+											 "jfitcomb_pu",
+											 "jfitcomb_pb",
+											 "jfitcomb_pc",
 											 "bottom",
 											 "charm",
 											 "light"};
@@ -697,7 +702,7 @@ std::vector<std::string> NeuralNet::get_ranking()
 	std::vector<std::string> ranked;
 	for (int i = 0; i < num_vars; ++i)
 	{
-		contribution.push_back(std::make_pair(variable_list.at(i), get_row_sum(First_Layer, i)));
+		contribution.push_back(std::make_pair(variable_list.at(i), (mean.at(i) * mean.at(i)) * get_row_sum(First_Layer, i)));
 	}
 
 	_ranking_comparison comparison_operator;
