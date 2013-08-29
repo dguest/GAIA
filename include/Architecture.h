@@ -17,7 +17,6 @@
 #include <iomanip>
 #include <utility>
 #include <memory>
-#include "VarUtils.h"
 
 class Architecture
 {
