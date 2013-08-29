@@ -15,4 +15,6 @@ bin/*.o
 *.lai
 *.la
 *.a
+
+.DS_Store
 >>>>>>> 0ae2ee39d2dcf256c0b65eeedd719965315be993
