@@ -57,4 +57,11 @@ private:
 	double gamma, onemingamma;
 };
 
+//----------------------------------------------------------------------------
+//------------------ NON CLASS UTILITY-TYPE FUNCTIONS ------------------------
+//----------------------------------------------------------------------------
+
+void progress_bar(int percent);
+void epoch_progress_bar(int percent, int epoch, int tot);
+
 #endif

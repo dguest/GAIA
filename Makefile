@@ -24,7 +24,7 @@ ROOTLIBS = $(shell root-config --libs)
 CXXFLAGS += $(ROOTCFLAGS)
 LIBS += $(ROOTLIBS)
 
-OBJ = VarUtils.o main.o NeuralNet.o Architecture.o Layer.o Activation.o Dataset.o
+OBJ = main.o NeuralNet.o Architecture.o Layer.o Activation.o Dataset.o
 
 TARGET = TaggerFramework
 

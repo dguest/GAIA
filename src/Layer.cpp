@@ -37,7 +37,6 @@ Layer::Layer(std::vector<std::vector<double> > Synapse, bool last) : Synapse ( S
 //----------------------------------------------------------------------------
 Layer::~Layer() 
 {
-	// delete Auto_Encoder;
 }
 
 //----------------------------------------------------------------------------
@@ -95,8 +94,6 @@ void Layer::setDelta(std::vector<double> deltas)
 void Layer::make_denoising()
 {
 	Auto_Encoder = std::move(std::unique_ptr<Layer>(new Layer(outs, ins, last, _sigmoid)));
-	// Auto_Encoder = std::move(std::unique_ptr<Layer>(new Layer(outs - 1, ins, last, _sigmoid)));
-	// Auto_Encoder->setMomentum(.5);
 }
 
 //----------------------------------------------------------------------------
@@ -109,8 +106,6 @@ void Layer::encode(std::vector<double> input, double learning, double weight)
 	neural network. We essentially perform  non-linear PCA at each layer by 
 	estimating the identity function through a series of sigmoidal transforms.
 	*/
-	// std::cout << "\n";
-	// vector_print(input);
 	std::vector<double> identity_estimate(input);
 
 	input.push_back(1); // Add the bias term to the vector.
@@ -128,9 +123,6 @@ void Layer::encode(std::vector<double> input, double learning, double weight)
 
 	Outs = _sigmoid(Outs); // transform the output of the first synapse.
 
-	// auto Outs_copy(Outs);
-	// Outs_copy.push_back(1);
-
 	// Feed throight the second layer
 	for (int i = 0; i < ins; ++i) {
 		sum = 0;
@@ -140,26 +132,15 @@ void Layer::encode(std::vector<double> input, double learning, double weight)
 		identity_estimate.at(i) = sum;
 		Auto_Encoder->Outs.at(i) = sum;
 	}
-	// std::cout << "Error before: " << sum << ", ";
-	// std::cout << "Initial Vector" << std::endl;
-	// vector_print(input);
-	// std::cout << "Initial estimate Vector" << std::endl;
-	// vector_print(identity_estimate);
 
 	std::vector<double> error(identity_estimate);  /* needs to be (estimated - actual) */
 
 	for (int i = 0; i < ins; ++i) // Make error into the partial derivative.
 	{
-		// std::cout << "error.at(i) = " << error.at(i) << std::endl;
-		// std::cout << "input.at(i) = " << input.at(i) << std::endl;
-		// std::cout << "dsig(identity_estimate.at(i)) = " << dsig(identity_estimate.at(i)) << std::endl;
 		error.at(i) -= input.at(i);
-		// error.at(i) = dsig(error.at(i)) * (error.at(i) - input.at(i));
-		// error.at(i) = error.at(i) * (identity_estimate.at(i));
 	}
 
 	Auto_Encoder->setDelta( error );
-	// vector_print(Auto_Encoder->Delta);
 
 	for (int i = 0; i < outs; ++i) 
 	{ // Delta = DSIG * Synapse * prev_Delta
@@ -170,11 +151,6 @@ void Layer::encode(std::vector<double> input, double learning, double weight)
 		}
 		Delta.at(i) = val;
 	}
-	// std::cout << "\n";
-	// vector_print(Delta);
-	// std::cout << "\nouts = " << outs << ", " << Auto_Encoder->Synapse.size();
-	// std::cout << "ins = " << ins << ", " << Auto_Encoder->Synapse.at(0).size();
-	// std::cin.ignore();
 	for (int i = 0; i < ins; ++i) 
 	{
     	int j;
@@ -197,8 +173,6 @@ void Layer::encode(std::vector<double> input, double learning, double weight)
     }
     drop();
     Auto_Encoder->drop();
- //    sum = 0;
-    // std::cout << "Final Vector" << std::endl;
 
 	// Feed throight the first layer
 
@@ -224,13 +198,9 @@ void Layer::encode(std::vector<double> input, double learning, double weight)
 		}
 		Auto_Encoder->Outs.at(i) = sum;
 	}
-    // vector_print(Auto_Encoder->Outs);
 
-	// std::cout << "Error after: " << sum << std::endl;
-	// std::cin.ignore();
 }
-
-
+//----------------------------------------------------------------------------
 std::vector<double> Layer::getReconstructedInput(std::vector<double> jet)
 {
 	double sum;
@@ -303,4 +273,56 @@ void Layer::setMomentum(double x)
 {
 	gamma = x;
 	onemingamma = 1.0 - x;
+}
+
+
+
+//----------------------------------------------------------------------------
+//------------------ NON CLASS UTILITY-TYPE FUNCTIONS ------------------------
+//----------------------------------------------------------------------------
+
+void progress_bar(int percent) 
+{
+    std::string _prog_bar;
+    for(int i = 0; i < 50; i++) 
+    {
+        if (i < (percent/2)) 
+        {
+            _prog_bar.replace(i,1,"=");
+        }
+        else if (i == (percent/2)) 
+        {
+            _prog_bar.replace(i,1,">");
+        }
+        else 
+        {
+            _prog_bar.replace(i,1," ");
+        }
+    }
+    std::cout<< "\r" "[" << _prog_bar << "] ";
+    std::cout.width( 3 );
+    std::cout<< percent << "%     " << std::flush;
+}
+//----------------------------------------------------------------------------
+void epoch_progress_bar(int percent, int epoch, int tot) 
+{
+    std::string _prog_bar;
+    for(int i = 0; i < 50; i++) 
+    {
+        if (i < (percent/2)) 
+        {
+            _prog_bar.replace(i,1,"=");
+        }
+        else if (i == (percent/2)) 
+        {
+            _prog_bar.replace(i,1,">");
+        }
+        else 
+        {
+            _prog_bar.replace(i,1," ");
+        }
+    }
+    std::cout << "\r" "Epoch " << epoch << " of " << tot << ", [" << _prog_bar << "] ";
+    std::cout.width( 6 );
+    std::cout<< std::setprecision(3) << percent << "%     " << std::flush;
 }

@@ -36,8 +36,8 @@ public:
 	NeuralNet( NeuralNet &A );
 
 	void set_dataset(std::string root_file = "", std::string tree_name = "");
-
 	void get_dataset_entry(const int index);
+
 	bool set_input_branch(std::string name, std::string type);
 	bool set_output_branch(std::string name, std::string type);
 	bool set_control_branch(std::string name, std::string type);
@@ -51,21 +51,25 @@ public:
 	std::vector<double> input();
 	std::vector<double> output();
 
-
 	void setLearning( double x );
 	void setMomentum( double x );
 	void anneal( double x );
 
-	void train(int n_epochs, int n_train, std::string save_filename, bool verbose = 0, std::string timestamp = "", bool memory = false);
+	void encode(std::vector<std::vector<double>> input, std::vector<double> weight, bool verbose);
+	void encode(bool verbose = 1);
+
+	void train(int n_epochs, int n_train, std::string save_filename, 
+		       bool verbose = 0, std::string timestamp = "", bool memory = false);
+
 	void train( std::vector<double> Event, std::vector<double> Actual, double weight = 1);
 
 	void getTransform(bool verbose = false, bool into_memory = 0, int n_train = -1);
 	void setTransform( std::vector<double> Mean, std::vector<double> Stddev );
 
 
-	void setActivationFunctions(std::vector<double> (*sigmoid_function) (std::vector<double>),\
-	                            double (*sigmoid_derivative)(double), \
-	                            std::vector<double> (*softmax_function) (std::vector<double>));
+	void setActivationFunctions(std::vector<double> (*sigmoid_function) (std::vector<double>),
+                                double (*sigmoid_derivative)(double), 
+                                std::vector<double> (*softmax_function) (std::vector<double>));
 
 	std::vector<double> transform( std::vector<double> Event );
 	std::vector<std::vector<double>> transform(std::vector<std::vector<double>> Event);
@@ -75,30 +79,27 @@ public:
 
 	bool save( const std::string &filename );
 	bool load( const std::string &filename );
-
 	bool write_perf( const std::string &filename = "" , int start = 0, int end = 10000);
-
-	void encode(std::vector<std::vector<double>> input, std::vector<double> weight, bool verbose);
-	void encode(bool verbose = 1);
-
 	std::vector<std::string> get_ranking();
 private:
 //----------------------------------------------------------------------------
 	std::unique_ptr<Dataset> dataset;
 	std::vector<std::vector<double> > dataset_mem, labels_mem;
-	std::vector<double> weights_mem;
-
 	std::unique_ptr<Architecture> Net;
-
 	double learning, momentum;
-
 	std::vector<int> structure;
 	int count;
-	std::vector<double> mean, stddev;
+	std::vector<double> mean, stddev, weights_mem;
 	double (*_sigmoid_derivative) (double);
 	std::vector<double> (*_softmax_function) (std::vector<double>);
 	std::vector<double> (*_sigmoid) (std::vector<double>);
 };
+
+
+
+//----------------------------------------------------------------------------
+//------------------ NON CLASS UTILITY-TYPE FUNCTIONS ------------------------
+//----------------------------------------------------------------------------
 
 template <typename T>
 inline T get_row_sum(std::vector<std::vector<T>> Array, unsigned int row_number)
@@ -112,9 +113,6 @@ inline T get_row_sum(std::vector<std::vector<T>> Array, unsigned int row_number)
 	}
 	return sum;
 }
-
-
-
 
 struct _ranking_comparison {
 	bool operator() (DictElement A, DictElement B) 

@@ -43,17 +43,17 @@ Dataset::~Dataset()
 		delete file;
 	}
 }
-
+//----------------------------------------------------------------------------
 std::vector<std::string> Dataset::get_output_vars()
 {
 	return output_vars;
 }
-
+//----------------------------------------------------------------------------
 std::vector<std::string> Dataset::get_input_vars()
 {
 	return input_vars;
 }
-
+//----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 bool Dataset::set_input_branch(std::string name, std::string type)
 {
@@ -124,7 +124,7 @@ bool Dataset::set_output_branch(std::string name, std::string type)
 	}
 }
 
-
+//----------------------------------------------------------------------------
 bool Dataset::set_control_branch(std::string name, std::string type)
 {
 	variables.insert(std::pair<std::string, std::unique_ptr<Numeric>>(name, std::move(std::unique_ptr<Numeric>(new Numeric))));
@@ -156,7 +156,7 @@ bool Dataset::set_control_branch(std::string name, std::string type)
 	}
 }
 
-
+//----------------------------------------------------------------------------
 
 std::map<std::string, double> Dataset::get_performance_map(std::vector<std::string> &variable_names)
 {
@@ -186,7 +186,7 @@ double Dataset::get_value(std::string name)
 {
 	return cast_as_double(*(variables[name]));
 }
-
+//----------------------------------------------------------------------------
 std::vector<double> &Dataset::input()
 {
 	unsigned int ptr = 0;
@@ -199,6 +199,7 @@ std::vector<double> &Dataset::input()
 
 	return m_input;
 }
+//----------------------------------------------------------------------------
 std::vector<double> &Dataset::output()
 {
 	unsigned int ptr = 0;
@@ -209,7 +210,7 @@ std::vector<double> &Dataset::output()
 	}
 	return m_output;
 }
-
+//----------------------------------------------------------------------------
 double Dataset::get_physics_reweighting()
 {
 	if (cast_as_int(*(variables["light"])) == 1)
@@ -225,17 +226,15 @@ double Dataset::get_physics_reweighting()
         return reweighting.charm_correction[cast_as_int(*(variables["cat_pT"]))][cast_as_int(*(variables["cat_eta"]))];
     }
 }
-
+//----------------------------------------------------------------------------
 unsigned int Dataset::num_entries()
 {
 	return n_entries;
 }
-
+//----------------------------------------------------------------------------
 void Dataset::determine_reweighting()
 {
 	int n_estimate = n_entries / 20;
-	// double charm_hist[7][4], bottom_hist[7][4], light_hist[7][4];
-
 	std::vector<std::vector<double> > charm_correction, bottom_correction, charm_hist, bottom_hist, light_hist;
 	charm_correction.resize(7);
 	bottom_correction.resize(7);
@@ -250,7 +249,6 @@ void Dataset::determine_reweighting()
 		bottom_hist[i].resize(4);
 		light_hist[i].resize(4);
 	}
-
 	for (int cat_pT = 0; cat_pT < 7; ++cat_pT)
 	{
 		for (int cat_eta = 0; cat_eta < 4; ++cat_eta)
@@ -260,7 +258,6 @@ void Dataset::determine_reweighting()
 			bottom_hist[cat_pT][cat_eta] = 0;
 		}
 	}
-
 	for (int i = 0; i < n_estimate; ++i)
 	{
 		at(i);
@@ -289,34 +286,13 @@ void Dataset::determine_reweighting()
 			charm_correction[cat_pT][cat_eta] = std::min(std::max(light_hist[cat_pT][cat_eta], 1.0) / (2.5 * std::max(charm_hist[cat_pT][cat_eta], 1.0)), 20.0);
 		}
 	}
-
-	std::cout << "\nBottom Correction:" << std::endl;
-	for (int i = 0; i < 7; ++i)
-	{
-		for (int j = 0; j < 4; ++j)
-		{
-			std::cout << bottom_correction[i][j] << "   ";
-		}
-		std::cout << "\n";
-	}
-
-	std::cout << "\nCharm Correction:" << std::endl;
-	for (int i = 0; i < 7; ++i)
-	{
-		for (int j = 0; j < 4; ++j)
-		{
-			std::cout << charm_correction[i][j] << "   ";
-		}
-		std::cout << "\n";
-	}
 	reweighting.charm_correction = charm_correction;
 	reweighting.bottom_correction = bottom_correction;
-
-	// Event evt;
-
-	// reweighting.charm_correction = evt.charm_correction;
-	// reweighting.bottom_correction = evt.bottom_correction;
 }
+
+//----------------------------------------------------------------------------
+//------------------ NON CLASS UTILITY-TYPE FUNCTIONS ------------------------
+//----------------------------------------------------------------------------
 
 
 inline double cast_as_double(Numeric number)
@@ -334,7 +310,7 @@ inline double cast_as_double(Numeric number)
 		return static_cast<double>(number.double_);
 	}
 }
-
+//----------------------------------------------------------------------------
 inline int cast_as_int(Numeric number)
 {
 	if (number.isInt)

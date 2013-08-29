@@ -137,9 +137,9 @@ void NeuralNet::anneal(double x)
 	Net->anneal(x);
 }
 //----------------------------------------------------------------------------
-void NeuralNet::setActivationFunctions(std::vector<double> (*sigmoid_function) (std::vector<double>),\
-                            double (*sigmoid_derivative)(double), \
-                            std::vector<double> (*softmax_function) (std::vector<double>))
+void NeuralNet::setActivationFunctions(std::vector<double> (*sigmoid_function) (std::vector<double>),
+                                       double (*sigmoid_derivative)(double), 
+                                       std::vector<double> (*softmax_function) (std::vector<double>))
 {
 	_sigmoid_derivative = sigmoid_derivative;
 	_softmax_function = softmax_function;
@@ -157,29 +157,19 @@ void NeuralNet::train(int n_epochs, int n_train, std::string save_filename, bool
 	        for (int entry = 0; entry < n_train; entry++) 
 	        {
 	        	get_dataset_entry(entry);
-	        	// std::cout << "pT = " << get_value("pt") << ", and eta = " << get_value("eta") << std::endl;
-	            // if ((get_value("pt") < 500) && (fabs(get_value("eta")) < 2.5))
-	            if ((get_value("pt") > 20) && (fabs(get_value("eta")) < 2.5) && (get_value("flavor_truth_label") < 8) && (get_value("pt") < 1000))
+	            if ((get_value("pt") > 20) && 
+	            	(fabs(get_value("eta")) < 2.5) && 
+	            	(get_value("flavor_truth_label") < 8) && 
+	            	(get_value("pt") < 1000))
 	            {
-	            	// std::cout << "And we train..." << std::endl;
-	            	// get_dataset_entry(entry);
-	            	// vector_print(output());
-	            	// vector_print(_softmax_function(Net->test( transform(input()))));
 	        		train(input(), output(), get_physics_reweighting());
 	            }
-
 	            pct = (((double)(entry)) / ((double) (n_train))) * 100;
 	            if (verbose)
 	            {
 	                epoch_progress_bar(pct, i + 1, n_epochs);
 	            }
-	            else
-	            {
-					vector_print(transform(input()));
-					std::cout << "\n";
-	            }
-	        }
-	        
+	        }	        
 	    }
 	}
 	else
@@ -187,18 +177,17 @@ void NeuralNet::train(int n_epochs, int n_train, std::string save_filename, bool
 		int n = weights_mem.size();
 		for (int i = 0; i < n_epochs; ++i) 
 	    {
-	    	save(".temp_progress_" + save_filename + std::to_string(i) + "_"+ timestamp + ".nnet"); //save a progress file in case we need to kill the process.
+	    	//save a progress file in case we need to kill the process.
+	    	save(".temp_progress_" + save_filename + std::to_string(i) + "_"+ timestamp + ".nnet"); 
 	        for (int entry = 0; entry < n; entry++) 
 	        {
 	        	train(dataset_mem.at(entry), labels_mem.at(entry), weights_mem.at(entry));
-
 	            pct = (((double)(entry)) / ((double) (n))) * 100;
 	            if (verbose)
 	            {
 	                epoch_progress_bar(pct, i + 1, n_epochs);
 	            }
 	        }
-	        
 	    }
 	}
     if (verbose)
@@ -213,15 +202,11 @@ void NeuralNet::train(std::vector<double> Event, std::vector<double> Actual, dou
 	std::vector<double> outs((Net->test( transform(Event) )));
 	assert ( outs.size() == Actual.size());
 	outs = _softmax_function(outs);
-
-
 	for (unsigned int i = 0; i < outs.size(); ++i) 
 	{
-		outs.at(i) -= Actual.at(i);     // what i was doing before
+		outs.at(i) -= Actual.at(i);
 		outs.at(i) /= log(2);
 	}
-
-
 	Net->backpropagate(outs, transform(Event), weight);
 }
 //----------------------------------------------------------------------------
@@ -243,9 +228,8 @@ void NeuralNet::getTransform(bool verbose, bool into_memory, int n_train)
 	dataset->at(0);
 	std::vector<double> ENTRY(dataset->input());
     int n_cols = ENTRY.size();
-    std::vector<double> means(n_cols, 0);
 
-    // n_estimate = 100;
+    std::vector<double> means(n_cols, 0);
     std::vector<double> stdev(n_cols, 0);
 
 	for (int i = 0; i < n_estimate; ++i)
@@ -262,7 +246,7 @@ void NeuralNet::getTransform(bool verbose, bool into_memory, int n_train)
 		    	labels_mem.push_back(labels);
 		    	weights_mem.push_back(get_physics_reweighting());
 		    }
-		     // online, numerically stable algorithm 
+		    // online, numerically stable algorithm 
 		    for (unsigned int j = 0; j < n_cols; ++j)
 		    {
 		        temp = ENTRY[j];
@@ -270,7 +254,6 @@ void NeuralNet::getTransform(bool verbose, bool into_memory, int n_train)
 		        means[j] += ((temp - means[j]) / n);
 		        double denom = ((n == 1) ? 1.0 : ((double)n - 1));
 		        stdev[j] = ((n - 2) * stdev[j] + (temp - means[j]) * (temp - old_mean)) / denom;
-
 		    }
 		}
 		if (verbose)
@@ -283,7 +266,6 @@ void NeuralNet::getTransform(bool verbose, bool into_memory, int n_train)
     {
         stdev[j] = sqrt(stdev[j]);
     }
-
 	setTransform(means, stdev);
 }
 //----------------------------------------------------------------------------
@@ -312,8 +294,7 @@ std::vector<std::vector<double>> NeuralNet::transform(std::vector<std::vector<do
 			entry.at(i) -= mean.at(i);
 			entry.at(i) /= ((stddev.at(i) < 1e-7) ? 1e-4 : stddev.at(i)); // avoid dirac delta-like variances
 		}	
-	}
-	
+	}	
 	return std::move(Event);
 }
 //----------------------------------------------------------------------------
@@ -501,19 +482,19 @@ bool NeuralNet::load(const std::string &filename)
 bool NeuralNet::write_perf( const std::string &filename, int start, int end)
 {
 	std::vector<std::string> perf_variables {"cat_pT",
-											 "cat_eta",
-											 "pt",
-											 "eta",
-											 "MV1",
-											 "jfitc_pu",
-											 "jfitc_pb",
-											 "jfitc_pc",
-											 "jfitcomb_pu",
-											 "jfitcomb_pb",
-											 "jfitcomb_pc",
-											 "bottom",
-											 "charm",
-											 "light"};
+                                             "cat_eta",
+                                             "pt",
+                                             "eta",
+                                             "MV1",
+                                             "jfitc_pu",
+                                             "jfitc_pb",
+                                             "jfitc_pc",
+                                             "jfitcomb_pu",
+                                             "jfitcomb_pb",
+                                             "jfitcomb_pc",
+                                             "bottom",
+                                             "charm",
+                                             "light"};
 	if (filename.empty())
 	{
 		std::cout << std::endl;

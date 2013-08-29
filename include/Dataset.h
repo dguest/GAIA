@@ -11,29 +11,8 @@
 #include <TFile.h>
 #include <TTree.h>
 
-
-
 struct Numeric;
-// struct Reweighting;
-struct Reweighting
-{
-	std::vector<std::vector<double> > charm_correction{{ 4.7813786 ,  5.75476992,  5.32571972},
-                                                       { 2.76522175,  3.07056562,  3.49735229},
-                                                       { 1.99229081,  2.1827376 ,  2.49293546},
-                                                       { 1.69717955,  1.84160008,  2.14931622},
-                                                       { 1.6792711 ,  1.7875187 ,  2.2964892 },
-                                                       { 1.75172414,  1.95298897,  3.15380736},
-                                                       { 2.15092817,  2.67375887,  7.44715447}};
-
-    std::vector<std::vector<double> > bottom_correction{{ 4.21503718,  4.58221626,  4.2480832 },
-                                                        { 2.02927332,  2.17348208,  2.3599827 },
-                                                        { 1.13992942,  1.22582201,  1.40836526},
-                                                        { 0.76866489,  0.82876502,  1.04253533},
-                                                        { 0.67610282,  0.73204141,  0.98333168},
-                                                        { 0.72593552,  0.84125   ,  1.47890655},
-                                                        { 1.06463726,  1.55198777,  4.25255339}};
-};
-
+struct Reweighting;
 
 class Dataset
 {
@@ -66,6 +45,9 @@ private:
 	Reweighting reweighting;
 };
 
+//----------------------------------------------------------------------------
+//------------------ NON CLASS UTILITY-TYPE FUNCTIONS ------------------------
+//----------------------------------------------------------------------------
 
 struct Numeric
 {
@@ -77,12 +59,14 @@ struct Numeric
 	       isFlt = false; 
 };
 
+struct Reweighting
+{
+	std::vector<std::vector<double> > charm_correction;
+    std::vector<std::vector<double> > bottom_correction;
+};
+
 inline double cast_as_double(Numeric number);
 inline int cast_as_int(Numeric number);
-
-
-
-
 
 
 

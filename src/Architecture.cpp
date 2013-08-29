@@ -145,15 +145,10 @@ void Architecture::encode(std::vector<std::vector<double>> input, double learnin
 	{
 		idx = 0;
 		for (auto jet : input) // The first layer needs to be done by itself.
-		{
-			// std::cout << "Original: " << std::endl;
-			// vector_print(jet);
-			Bundle.at(0)->encode(jet, learning, weight.at(idx)); // Initialize the first layer of PCA
-			// std::cout << "Reconstructed" << std::endl;
-			// vector_print(Bundle.at(0)->getReconstructedInput(jet));
+		{	
+			Bundle.at(0)->encode(jet, learning, weight.at(idx)); 
 			++idx;
-			++ctr;
-			
+			++ctr;	
 		}
 		if (verbose)
         {
@@ -182,15 +177,11 @@ void Architecture::encode(std::vector<std::vector<double>> input, double learnin
 		            pct = (((double)(ctr)) / ((double) (total_passes))) * 100;
 		            progress_bar(pct);
 		        }
-		        // std::cout << "Original: " << std::endl;
-				// vector_print(jet);
-				// std::cout << "Reconstructed" << std::endl;
-				// vector_print(Bundle.at(0)->getReconstructedInput(jet));
 			}
 		}
 	}
 }
-
+//----------------------------------------------------------------------------
 std::vector<std::vector<double>> Architecture::get_first_layer()
 {
 	return Bundle.at(0)->Synapse;

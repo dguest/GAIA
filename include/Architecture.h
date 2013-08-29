@@ -37,7 +37,6 @@ private:
 //----------------------------------------------------------------------------
 	friend class NeuralNet;
 	std::vector< std::unique_ptr<Layer> > Bundle;
-	// std::vector< std::vector<std::vector<double>>> Eta;
 	std::vector<double> reconstruction_error;
 	std::vector<int> structure;
 	int layers;
