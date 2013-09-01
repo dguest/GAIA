@@ -48,6 +48,7 @@ int main(int argc, char *argv[])
          memory = false,
          resume = false,
          struct_flag = false,
+         dropout = false,
          encode = false;
 
     int n_train = 0, 
@@ -87,6 +88,10 @@ int main(int argc, char *argv[])
             else if ((std::string(argv[i]) == "-resume")) 
             {
                 resume = true;
+            } 
+            else if ((std::string(argv[i]) == "-dropout")) 
+            {
+                dropout = true;
             } 
             else if ((std::string(argv[i]) == "-encode")) 
             {
@@ -248,7 +253,7 @@ int main(int argc, char *argv[])
         {
             net.encode(verbose);
         }
-        net.train(n_epochs, n_train, save_filename, verbose, _timestamp(), memory);        
+        net.train(n_epochs, n_train, save_filename, verbose, _timestamp(), memory, dropout);        
     }
 //-----------------------------------------------------------------------------
 //  Loading from previous session

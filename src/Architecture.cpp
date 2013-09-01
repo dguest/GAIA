@@ -77,13 +77,12 @@ void Architecture::backpropagate(
 {
 	Bundle.at(layers - 1)->setDelta( error ); 
 	double val;
-
 	for (int l = layers - 1; l > 0; l--) 
 	{ //for each layer in the neural net
 		for (int i = 0; i < structure.at(l); ++i) 
 		{ // Delta = DSIG * Synapse * prev_Delta
 			val = 0;
-			if (Bundle.at(l - 1)->include_node(i))
+			if (Bundle.at(l)->include_node(i))
 			{
 				for (int j = 0; j < structure.at(l + 1); ++j) 
 				{
@@ -93,7 +92,6 @@ void Architecture::backpropagate(
 			Bundle.at(l - 1)->Delta.at(i) = val;
 		}
 	}
-
 	for (int l = layers - 1; l > 0; l--) 
 	{ //for each layer in the neural net
 		for (int i = 0; i < structure.at(l + 1); ++i) 
@@ -210,6 +208,7 @@ void Architecture::weight_dropout(double prob_out, double prob_input_layer)
 		{
 			layer->weight_dropout(prob_input_layer);
 		}
+		++idx;
 	}
 }
 

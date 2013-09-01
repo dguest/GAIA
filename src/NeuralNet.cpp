@@ -146,7 +146,7 @@ void NeuralNet::setActivationFunctions(std::vector<double> (*sigmoid_function) (
 	_sigmoid = sigmoid_function;
 }
 //----------------------------------------------------------------------------
-void NeuralNet::train(int n_epochs, int n_train, std::string save_filename, bool verbose, std::string timestamp, bool memory)
+void NeuralNet::train(int n_epochs, int n_train, std::string save_filename, bool verbose, std::string timestamp, bool memory, bool dropout)
 {
 	double pct;
 	if(!memory)
@@ -165,7 +165,10 @@ void NeuralNet::train(int n_epochs, int n_train, std::string save_filename, bool
 
 	            if ( good_jet )
 	            {
-	            	// Net->weight_dropout();
+	            	if (dropout)
+	            	{
+	            		Net->weight_dropout();
+	            	}
 	        		train(input(), output(), get_physics_reweighting());
 	            }
 	            pct = (((double)(entry)) / ((double) (n_train))) * 100;
