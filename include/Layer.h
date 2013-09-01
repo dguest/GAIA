@@ -36,6 +36,8 @@ public:
 	void perturb(double epsilon);
 	void resetWeights(double bound);
 	void make_denoising();
+	bool &include_node(const int node);
+	void reset_inclusion();
 	void encode(std::vector<double> input, double learning, double weight);
 	void feed(std::vector<double> event);
 	void set(int i, int j, double val);
@@ -49,6 +51,7 @@ private:
 	friend class NeuralNet;
 	std::vector<std::vector<double> > Synapse, DeltaSynapse;
 	// Layer *Auto_Encoder;
+	std::vector<bool> Dropout;
 	std::unique_ptr<Layer> Auto_Encoder;
 	std::vector<double> Delta, Outs;
 	std::vector<double> (*_sigmoid)(std::vector<double>);

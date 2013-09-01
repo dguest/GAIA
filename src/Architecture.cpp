@@ -83,9 +83,12 @@ void Architecture::backpropagate(
 		for (int i = 0; i < structure.at(l); ++i) 
 		{ // Delta = DSIG * Synapse * prev_Delta
 			val = 0;
-			for (int j = 0; j < structure.at(l + 1); ++j) 
+			if (Bundle.at(l - 1)->include_node(i))
 			{
-				val += _sigmoid_derivative(Bundle.at(l - 1)->Outs.at(i)) * (Bundle.at(l)->Synapse.at(i).at(j)) * (Bundle.at(l)->Delta.at(j));
+				for (int j = 0; j < structure.at(l + 1); ++j) 
+				{
+					val += _sigmoid_derivative(Bundle.at(l - 1)->Outs.at(i)) * (Bundle.at(l)->Synapse.at(i).at(j)) * (Bundle.at(l)->Delta.at(j));
+				}
 			}
 			Bundle.at(l - 1)->Delta.at(i) = val;
 		}
@@ -98,7 +101,10 @@ void Architecture::backpropagate(
 	    	int j;
 	    	for (j = 0; j <  structure.at(l); j++) //not plus one because of bias 	
 	    	{
-	    		Bundle.at(l)->set(j, i, weight * (-eta * Bundle.at(l)->Delta.at(i) * Bundle.at(l - 1)->Outs.at(j) - lambda * Bundle.at(l)->Synapse.at(j).at(i)));
+	    		if (Bundle.at(l)->include_node(j)) // made so weight dropout is possible
+	    		{
+	    			Bundle.at(l)->set(j, i, weight * (-eta * Bundle.at(l)->Delta.at(i) * Bundle.at(l - 1)->Outs.at(j) - lambda * Bundle.at(l)->Synapse.at(j).at(i)));
+	    		}	
 	    	}
 	    	Bundle.at(l)->set(j, i, -eta * weight * Bundle.at(l)->Delta.at(i));
 	    }
@@ -109,7 +115,10 @@ void Architecture::backpropagate(
     	//not plus one because of bias 
     	for (j = 0; j < Bundle.at(0)->ins; j++)
     	{
-    		Bundle.at(0)->set(j, i, weight * (-eta * Bundle.at(0)->Delta.at(i) * Event.at(j) - lambda * Bundle.at(0)->Synapse.at(j).at(i)));
+    		if (Bundle.at(0)->include_node(0)) // made so weight dropout is possible
+    		{
+    			Bundle.at(0)->set(j, i, weight * (-eta * Bundle.at(0)->Delta.at(i) * Event.at(j) - lambda * Bundle.at(0)->Synapse.at(j).at(i)));	
+    		}
     	}
     	Bundle.at(0)->set(j, i, -eta * weight * (Bundle.at(0)->Delta.at(i)));
     }

@@ -11,7 +11,8 @@ std::mt19937_64 generator;
 Layer::Layer(int ins, int outs, bool last, 
 	         std::vector<double> (*Activation_function)(std::vector<double>)): 
 			 ins(ins), outs(outs), last(last), Outs(outs, 0.00), 
-             Delta(outs, 0.00), _sigmoid(Activation_function)
+             Delta(outs, 0.00), _sigmoid(Activation_function), 
+             Dropout(ins, true)
 
 {
 	std::vector<double> new_vec(outs, 0.00);
@@ -25,7 +26,10 @@ Layer::Layer(int ins, int outs, bool last,
 }
 
 //----------------------------------------------------------------------------
-Layer::Layer(std::vector<std::vector<double> > Synapse, bool last) : Synapse ( Synapse ), Outs(outs, 0.00), Delta(outs, 0.00) 
+Layer::Layer(std::vector<std::vector<double> > Synapse, bool last) : 
+             Synapse ( Synapse ), 
+             Outs(outs, 0.00), 
+             Delta(outs, 0.00) 
 {
 	std::vector<double> new_vec(outs, 0.00);
 	for (int i = 0; i < ins + 1; ++i) 
@@ -39,6 +43,19 @@ Layer::~Layer()
 {
 }
 
+bool &Layer::include_node(const int node)
+{
+	return Dropout.at(node);
+}
+
+
+void Layer::reset_inclusion()
+{
+	for (auto &entry : Dropout)
+	{
+		entry = true;
+	}
+}
 //----------------------------------------------------------------------------
 std::vector<double> Layer::fire() 
 {
@@ -93,14 +110,16 @@ void Layer::setDelta(std::vector<double> deltas)
 
 void Layer::make_denoising()
 {
-	Auto_Encoder = std::move(std::unique_ptr<Layer>(new Layer(outs, ins, last, _sigmoid)));
+	Auto_Encoder = std::move(std::unique_ptr<Layer>(new Layer(outs, 
+		                                                      ins, 
+		                                                      last, 
+		                                                      _sigmoid)));
 }
 
 //----------------------------------------------------------------------------
 
 void Layer::encode(std::vector<double> input, double learning, double weight)
 {
-	// std::cout << Auto_Encoder->gamma << ", " << Auto_Encoder->onemingamma << std::endl;
 	/* 
 	Here, we use a denoising autoencoder to determine initial weights in the 
 	neural network. We essentially perform  non-linear PCA at each layer by 
@@ -238,10 +257,15 @@ void Layer::feed(std::vector<double> event)
 	for (int i = 0; i < outs; ++i) 
 	{
 		sum = 0;
-		for (int j = 0; j <= ins; ++j) 
+		int j;
+		for (j = 0; j < ins; ++j) 
 		{
-			sum += event.at(j) * (Synapse.at(j).at(i));
+			if (include_node(j))
+			{
+				sum += event.at(j) * (Synapse.at(j).at(i));
+			}
 		}
+		sum += event.at(j) * (Synapse.at(j).at(i));
 		Outs.at(i) = sum;
 	}
 	if (!last) 
