@@ -2,13 +2,14 @@
 //				Activation.h
 //				By: Luke de Oliveira
 //------------------------------------------------------
-#ifndef _ACTIVATION
-#define _ACTIVATION
+#ifndef ACTIVATION_H
+#define ACTIVATION_H
 
 #include <stdlib.h>
 #include <iostream>
 #include <iomanip>
 #include <string>
+#include <random>
 #include <cmath>
 #include <vector>
 #include <utility>
@@ -21,4 +22,5 @@ std::vector<double> dsigmoid(std::vector<double> A);
 std::vector<double> softmax(std::vector<double> A);
 void vector_print(std::vector<double> v);
 std::string trim(const std::string& str, const std::string& whitespace = " ");
+
 #endif

@@ -7,7 +7,6 @@
 #define ARCHITECTURE_H 
 
 #include "Layer.h"
-#include "Activation.h"
 #include <cmath>
 #include <string>
 #include <random>
@@ -28,6 +27,7 @@ public:
 	void backpropagate(std::vector<double> error, std::vector<double> Event, double weight);
 	void setLearning(double x);
 	void make_denoising();
+	void weight_dropout(double prob_out = 0.5, double prob_input_layer = 1.0);
 	void encode(std::vector<std::vector<double>> input, double learning, std::vector<double> weight, bool verbose, int epochs = 6);
 	void setMomentum(double x);
 	void anneal(double x);

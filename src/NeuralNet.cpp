@@ -7,6 +7,7 @@
 #include "Architecture.h"
 #include <utility>
 
+
 //----------------------------------------------------------------------------
 NeuralNet::NeuralNet(std::vector<int> structure): 
         structure( structure ), 
@@ -156,11 +157,15 @@ void NeuralNet::train(int n_epochs, int n_train, std::string save_filename, bool
 	        for (int entry = 0; entry < n_train; entry++) 
 	        {
 	        	get_dataset_entry(entry);
-	            if ((get_value("pt") > 20) && 
-	            	(fabs(get_value("eta")) < 2.5) && 
-	            	(get_value("flavor_truth_label") < 8) && 
-	            	(get_value("pt") < 1000))
+
+	        	bool good_jet = (get_value("pt") > 20) && 
+	            	            (fabs(get_value("eta")) < 2.5) && 
+	            	            (get_value("flavor_truth_label") < 8) && 
+	            	            (get_value("pt") < 1000);
+
+	            if ( good_jet )
 	            {
+	            	// Net->weight_dropout();
 	        		train(input(), output(), get_physics_reweighting());
 	            }
 	            pct = (((double)(entry)) / ((double) (n_train))) * 100;

@@ -9,10 +9,11 @@ std::mt19937_64 generator;
 
 //----------------------------------------------------------------------------
 Layer::Layer(int ins, int outs, bool last, 
-	         std::vector<double> (*Activation_function)(std::vector<double>)): 
+	         std::vector<double> (*Activation_function)(std::vector<double>)/*, 
+	         std::mt19937_64 Generator*/): 
 			 ins(ins), outs(outs), last(last), Outs(outs, 0.00), 
              Delta(outs, 0.00), _sigmoid(Activation_function), 
-             Dropout(ins, true)
+             Dropout(ins, 1)/*, generator( Generator )*/
 
 {
 	std::vector<double> new_vec(outs, 0.00);
@@ -43,7 +44,7 @@ Layer::~Layer()
 {
 }
 
-bool &Layer::include_node(const int node)
+unsigned int &Layer::include_node(const int node)
 {
 	return Dropout.at(node);
 }
@@ -53,7 +54,7 @@ void Layer::reset_inclusion()
 {
 	for (auto &entry : Dropout)
 	{
-		entry = true;
+		entry = 1;
 	}
 }
 //----------------------------------------------------------------------------
@@ -75,7 +76,22 @@ void Layer::perturb(double epsilon)
 		}
 	}
 }
-
+//----------------------------------------------------------------------------
+void Layer::weight_dropout(double prob_out)
+{	
+	std::bernoulli_distribution determine_dropout(prob_out);
+	for (auto &entry : Dropout)
+	{
+		if (determine_dropout(generator))
+		{
+			entry = 1;
+		}
+		else
+		{
+			entry = 0;
+		}
+	}
+}
 //----------------------------------------------------------------------------
 void Layer::resetWeights(double bound) 
 {

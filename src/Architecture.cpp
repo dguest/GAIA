@@ -196,6 +196,23 @@ std::vector<std::vector<double>> Architecture::get_first_layer()
 	return Bundle.at(0)->Synapse;
 }
 
+//----------------------------------------------------------------------------
+void Architecture::weight_dropout(double prob_out, double prob_input_layer)
+{
+	int idx = 0;
+	for (auto &layer : Bundle)
+	{
+		if (idx != 0)
+		{
+			layer->weight_dropout(prob_out);
+		}
+		else
+		{
+			layer->weight_dropout(prob_input_layer);
+		}
+	}
+}
+
 
 
 

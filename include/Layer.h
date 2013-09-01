@@ -28,7 +28,7 @@ class Layer
 {
 public:
 //----------------------------------------------------------------------------
-	Layer(int ins, int outs, bool last, std::vector<double> (*Activation_function)(std::vector<double>));
+	Layer(int ins, int outs, bool last, std::vector<double> (*Activation_function)(std::vector<double>)/*, std::mt19937_64 Generator = val_gen::inclusion_generator*/);
 	Layer(std::vector<std::vector<double> > Synapse, bool last);
 	~Layer();
 	std::vector<double> fire();
@@ -36,7 +36,7 @@ public:
 	void perturb(double epsilon);
 	void resetWeights(double bound);
 	void make_denoising();
-	bool &include_node(const int node);
+	unsigned int &include_node(const int node);
 	void reset_inclusion();
 	void encode(std::vector<double> input, double learning, double weight);
 	void feed(std::vector<double> event);
@@ -44,17 +44,20 @@ public:
 	void drop();
 	void setMomentum(double x);
 	std::vector<double> getReconstructedInput(std::vector<double> jet);
+	void weight_dropout(double prob_out);
 
 private:
 //----------------------------------------------------------------------------
 	friend class Architecture;
 	friend class NeuralNet;
+	// std::mt19937_64 generator;
 	std::vector<std::vector<double> > Synapse, DeltaSynapse;
 	// Layer *Auto_Encoder;
-	std::vector<bool> Dropout;
+	std::vector<unsigned int> Dropout;
 	std::unique_ptr<Layer> Auto_Encoder;
 	std::vector<double> Delta, Outs;
 	std::vector<double> (*_sigmoid)(std::vector<double>);
+	
 	int ins, outs;
 	bool last;
 	double gamma, onemingamma;
@@ -68,3 +71,6 @@ void progress_bar(int percent);
 void epoch_progress_bar(int percent, int epoch, int tot);
 
 #endif
+
+
+

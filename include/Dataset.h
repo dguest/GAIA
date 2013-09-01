@@ -1,3 +1,7 @@
+#ifndef DATASET_H
+#define DATASET_H 
+
+
 #include <stdlib.h>
 #include <iostream>
 #include <fstream>
@@ -70,3 +74,5 @@ inline int cast_as_int(Numeric number);
 
 
 
+
+#endif

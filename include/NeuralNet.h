@@ -19,7 +19,6 @@
 #include <sstream>
 #include <vector>
 #include "Architecture.h"
-#include "Activation.h"
 #include "Dataset.h"
 #include <assert.h>
 

@@ -1,5 +1,4 @@
 #include "Dataset.h"
-#include "Activation.h"
 
 #include <cmath>
 
