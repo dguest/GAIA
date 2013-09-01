@@ -5,7 +5,6 @@
 
 #include "NeuralNet.h"
 #include "Architecture.h"
-#include "VarUtils.h"
 #include <utility>
 
 //----------------------------------------------------------------------------

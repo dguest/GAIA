@@ -1,7 +1,6 @@
-<<<<<<< HEAD
 bin/*.o
 *.o
-=======
+TaggerFramework
 # Compiled Object files
 *.slo
 *.lo
@@ -16,4 +15,3 @@ bin/*.o
 *.la
 *.a
 *_Store
->>>>>>> 0ae2ee39d2dcf256c0b65eeedd719965315be993

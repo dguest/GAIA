@@ -28,7 +28,7 @@ public:
 	void backpropagate(std::vector<double> error, std::vector<double> Event, double weight);
 	void setLearning(double x);
 	void make_denoising();
-	void encode(std::vector<std::vector<double>> input, double learning, std::vector<double> weight, bool verbose, int epochs = 5);
+	void encode(std::vector<std::vector<double>> input, double learning, std::vector<double> weight, bool verbose, int epochs = 6);
 	void setMomentum(double x);
 	void anneal(double x);
 	std::vector<std::vector<double>> get_first_layer();

@@ -12,7 +12,12 @@
 #include <TTree.h>
 
 struct Numeric;
-struct Reweighting;
+
+struct Reweighting
+{
+	std::vector<std::vector<double> > charm_correction {0};
+    std::vector<std::vector<double> > bottom_correction {0};
+};
 
 class Dataset
 {
@@ -57,12 +62,6 @@ struct Numeric
 	bool   isDbl = false, 
 	       isInt = false,
 	       isFlt = false; 
-};
-
-struct Reweighting
-{
-	std::vector<std::vector<double> > charm_correction;
-    std::vector<std::vector<double> > bottom_correction;
 };
 
 inline double cast_as_double(Numeric number);

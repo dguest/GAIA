@@ -1,6 +1,6 @@
 #include "Dataset.h"
 #include "Activation.h"
-#include "VarUtils.h"
+
 #include <cmath>
 
 struct Numeric;
