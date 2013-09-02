@@ -43,13 +43,13 @@ Layer::Layer(std::vector<std::vector<double> > Synapse, bool last) :
 Layer::~Layer() 
 {
 }
-
+//----------------------------------------------------------------------------
 unsigned int &Layer::include_node(const int node)
 {
 	return Dropout.at(node);
 }
 
-
+//----------------------------------------------------------------------------
 void Layer::reset_inclusion()
 {
 	for (auto &entry : Dropout)
@@ -91,6 +91,7 @@ void Layer::weight_dropout(double prob_out)
 			entry = 0;
 		}
 	}
+	vector_print(Dropout);
 }
 //----------------------------------------------------------------------------
 void Layer::resetWeights(double bound) 
@@ -266,24 +267,43 @@ std::vector<double> Layer::getReconstructedInput(std::vector<double> jet)
 }
 
 //----------------------------------------------------------------------------
-void Layer::feed(std::vector<double> event) 
+void Layer::feed(std::vector<double> event, bool dropout) 
 {
 	event.push_back(1);
 	double sum;
-	for (int i = 0; i < outs; ++i) 
+
+	if (!dropout)
 	{
-		sum = 0;
-		int j;
-		for (j = 0; j < ins; ++j) 
+		for (int i = 0; i < outs; ++i) 
 		{
-			if (include_node(j))
+			sum = 0;
+			int j;
+			for (j = 0; j < ins; ++j) 
 			{
-				sum += event.at(j) * (Synapse.at(j).at(i));
+				if (include_node(j))
+				{
+					sum += event.at(j) * (Synapse.at(j).at(i));
+				}
 			}
+			sum += event.at(j) * (Synapse.at(j).at(i));
+			Outs.at(i) = sum;
 		}
-		sum += event.at(j) * (Synapse.at(j).at(i));
-		Outs.at(i) = sum;
 	}
+	else
+	{
+		for (int i = 0; i < outs; ++i) 
+		{
+			sum = 0;
+			int j;
+			for (j = 0; j < ins; ++j) 
+			{
+				sum += (event.at(j) * (Synapse.at(j).at(i))) / 2;
+			}
+			sum += (event.at(j) * (Synapse.at(j).at(i)));
+			Outs.at(i) = sum;
+		}
+	}
+	
 	if (!last) 
 	{
 		Outs = _sigmoid(Outs);
@@ -293,12 +313,17 @@ void Layer::feed(std::vector<double> event)
 //----------------------------------------------------------------------------
 void Layer::drop() 
 {
-	for (int i = 0; i <= ins; ++i) 
+	for (int j = 0; j < outs; ++j)
 	{
-		for (int j = 0; j < outs; ++j) 
+		int i;
+		for (i = 0; i < ins; ++i)
 		{
-			Synapse.at(i).at(j) +=  DeltaSynapse.at(i).at(j);
+			if (include_node(i))
+			{
+				Synapse.at(i).at(j) +=  DeltaSynapse.at(i).at(j);
+			}
 		}
+		Synapse.at(i).at(j) +=  DeltaSynapse.at(i).at(j);
 	}
 }
 

@@ -486,7 +486,7 @@ bool NeuralNet::load(const std::string &filename)
     }
     return net_file.good();
 }
-bool NeuralNet::write_perf( const std::string &filename, int start, int end)
+bool NeuralNet::write_perf( const std::string &filename, int start, int end, bool dropout)
 {
 	std::vector<std::string> perf_variables {"cat_pT",
                                              "cat_eta",
@@ -530,7 +530,7 @@ bool NeuralNet::write_perf( const std::string &filename, int start, int end)
         		(get_value("flavor_truth_label") < 8))
         	{
         		ptr = 0;
-        		std::vector<double> predicted_values(_softmax_function(Net->test(transform(input() ))));
+        		std::vector<double> predicted_values(_softmax_function(Net->test( transform(input()), dropout)));
         		for (auto &prob : predicted_values)
         		{
         			if (ptr != 0)
@@ -601,8 +601,7 @@ bool NeuralNet::write_perf( const std::string &filename, int start, int end)
 	    }
     }
 }
-
-
+//----------------------------------------------------------------------------
 
 bool NeuralNet::load_specifications(const std::string &filename)
 {
@@ -679,8 +678,7 @@ bool NeuralNet::load_specifications(const std::string &filename)
     }
     return FILE.good();
 }
-
-
+//----------------------------------------------------------------------------
 std::vector<std::string> NeuralNet::get_ranking()
 {
 	auto variable_list = dataset->get_input_vars();

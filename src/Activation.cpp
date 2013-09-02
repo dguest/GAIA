@@ -12,15 +12,6 @@ double sig(double x)
 {
 	return 1 / (1 + exp(-x));
 }
-
-void vector_print(std::vector<double> v)
-{
-    for (auto i : v)
-    {
-        std::cout << i << ",  ";
-    }
-    std::cout << "\n";
-}
 //----------------------------------------------------------------------------
 double dsig(double x) 
 {

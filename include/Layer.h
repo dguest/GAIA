@@ -39,7 +39,7 @@ public:
 	unsigned int &include_node(const int node);
 	void reset_inclusion();
 	void encode(std::vector<double> input, double learning, double weight);
-	void feed(std::vector<double> event);
+	void feed(std::vector<double> event, bool dropout = false);
 	void set(int i, int j, double val);
 	void drop();
 	void setMomentum(double x);

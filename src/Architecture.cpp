@@ -33,14 +33,14 @@ Architecture::~Architecture()
 }
 
 //----------------------------------------------------------------------------
-std::vector<double> Architecture::test(std::vector<double> Event) 
+std::vector<double> Architecture::test(std::vector<double> Event, bool dropout) 
 {
-	Bundle.at(0)->feed((Event));
+	Bundle.at(0)->feed((Event), dropout);
 	unsigned int l;
 
 	for (l = 1; l < (Bundle.size()); ++l)
 	{
-		Bundle.at(l)->feed((Bundle.at(l - 1)->Outs));
+		Bundle.at(l)->feed((Bundle.at(l - 1)->Outs), dropout);
 	}
 	return std::move(Bundle.at(l - 1)->fire());
 }
@@ -102,7 +102,11 @@ void Architecture::backpropagate(
 	    		if (Bundle.at(l)->include_node(j)) // made so weight dropout is possible
 	    		{
 	    			Bundle.at(l)->set(j, i, weight * (-eta * Bundle.at(l)->Delta.at(i) * Bundle.at(l - 1)->Outs.at(j) - lambda * Bundle.at(l)->Synapse.at(j).at(i)));
-	    		}	
+	    		}
+	    		else
+	    		{
+	    			Bundle.at(l)->set(j, i, 0.0);
+	    		}
 	    	}
 	    	Bundle.at(l)->set(j, i, -eta * weight * Bundle.at(l)->Delta.at(i));
 	    }
@@ -116,6 +120,10 @@ void Architecture::backpropagate(
     		if (Bundle.at(0)->include_node(0)) // made so weight dropout is possible
     		{
     			Bundle.at(0)->set(j, i, weight * (-eta * Bundle.at(0)->Delta.at(i) * Event.at(j) - lambda * Bundle.at(0)->Synapse.at(j).at(i)));	
+    		}
+    		else
+    		{
+    			Bundle.at(0)->set(j, i, 0.0);
     		}
     	}
     	Bundle.at(0)->set(j, i, -eta * weight * (Bundle.at(0)->Delta.at(i)));

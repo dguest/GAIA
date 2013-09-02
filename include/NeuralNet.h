@@ -78,7 +78,7 @@ public:
 
 	bool save( const std::string &filename );
 	bool load( const std::string &filename );
-	bool write_perf( const std::string &filename = "" , int start = 0, int end = 10000);
+	bool write_perf( const std::string &filename = "" , int start = 0, int end = 10000, bool dropout = false);
 	std::vector<std::string> get_ranking();
 private:
 //----------------------------------------------------------------------------
