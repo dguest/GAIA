@@ -518,6 +518,7 @@ bool NeuralNet::write_perf( const std::string &filename, int start, int end)
         {
         	get_dataset_entry(entry);
         	if ((get_value("pt") > 20) && 
+        		(fabs(get_value("eta")) <= 2.5) &&
         		(get_value("pt") < 10000) && 
         		(get_value("flavor_truth_label") < 8))
         	{
@@ -567,6 +568,7 @@ bool NeuralNet::write_perf( const std::string &filename, int start, int end)
 	        {
 	        	get_dataset_entry(entry);
 	        	if ((get_value("pt") > 20) && 
+	        		(fabs(get_value("eta")) <= 2.5) &&
 	        		(get_value("pt") < 10000) && 
 	        		(get_value("flavor_truth_label") < 8))
 	        	{
