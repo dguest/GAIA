@@ -264,7 +264,7 @@ int main(int argc, char *argv[])
         std::cout << "\nLoading NeuralNet file:";
         net.load(net_file);
 
-        net.write_perf(write_filename, n_train, n_test + n_train);
+        net.write_perf(write_filename, n_train, n_test + n_train, dropout);
 
         auto ranking = net.get_ranking();
 
