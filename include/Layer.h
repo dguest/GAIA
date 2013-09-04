@@ -28,7 +28,7 @@ class Layer
 {
 public:
 //----------------------------------------------------------------------------
-	Layer(int ins, int outs, bool last, std::vector<double> (*Activation_function)(std::vector<double>)/*, std::mt19937_64 Generator = val_gen::inclusion_generator*/);
+	Layer(int ins, int outs, bool last, std::vector<double> (*Activation_function)(std::vector<double>)/*, std::mt19937_64 Generator = val_gen::inclusion_generator*/, bool dropconnect = false);
 	Layer(std::vector<std::vector<double> > Synapse, bool last);
 	~Layer();
 	std::vector<double> fire();
@@ -36,10 +36,10 @@ public:
 	void perturb(double epsilon);
 	void resetWeights(double bound);
 	void make_denoising();
-	unsigned int &include_node(const int node);
+	bool include_node(int i, int j);
 	void reset_inclusion();
 	void encode(std::vector<double> input, double learning, double weight);
-	void feed(std::vector<double> event, bool dropout = false);
+	void feed(std::vector<double> event, bool dropout = false, double prob = -1);
 	void set(int i, int j, double val);
 	void drop();
 	void setMomentum(double x);
@@ -53,13 +53,13 @@ private:
 	// std::mt19937_64 generator;
 	std::vector<std::vector<double> > Synapse, DeltaSynapse;
 	// Layer *Auto_Encoder;
-	std::vector<unsigned int> Dropout;
+	std::vector<std::vector<bool> > Dropout;
 	std::unique_ptr<Layer> Auto_Encoder;
 	std::vector<double> Delta, Outs;
 	std::vector<double> (*_sigmoid)(std::vector<double>);
 	
 	int ins, outs;
-	bool last;
+	bool last, DropConnect;
 	double gamma, onemingamma;
 };
 

@@ -13,7 +13,7 @@ Layer::Layer(int ins, int outs, bool last,
 	         std::mt19937_64 Generator*/): 
 			 ins(ins), outs(outs), last(last), Outs(outs, 0.00), 
              Delta(outs, 0.00), _sigmoid(Activation_function), 
-             Dropout(ins, 1)/*, generator( Generator )*/
+             Dropout(ins, 1)/*, generator( Generator )*/, DropConnect( dropconnect )
 
 {
 	std::vector<double> new_vec(outs, 0.00);
@@ -44,17 +44,20 @@ Layer::~Layer()
 {
 }
 //----------------------------------------------------------------------------
-unsigned int &Layer::include_node(const int node)
+bool Layer::include_node(int i, int j)
 {
-	return Dropout.at(node);
+	return Dropout.at(i).at(j);
 }
 
 //----------------------------------------------------------------------------
 void Layer::reset_inclusion()
 {
-	for (auto &entry : Dropout)
+	for (auto &i : Dropout)
 	{
-		entry = 1;
+		for (auto &ij : i)
+		{
+			ij = true;
+		}
 	}
 }
 //----------------------------------------------------------------------------
@@ -80,18 +83,13 @@ void Layer::perturb(double epsilon)
 void Layer::weight_dropout(double prob_out)
 {	
 	std::bernoulli_distribution determine_dropout(prob_out);
-	for (auto &entry : Dropout)
+	for (auto &i : Dropout)
 	{
-		if (determine_dropout(generator))
+		for (auto &ij : i)
 		{
-			entry = 1;
-		}
-		else
-		{
-			entry = 0;
+			determine_dropout(generator);
 		}
 	}
-	vector_print(Dropout);
 }
 //----------------------------------------------------------------------------
 void Layer::resetWeights(double bound) 
@@ -267,26 +265,49 @@ std::vector<double> Layer::getReconstructedInput(std::vector<double> jet)
 }
 
 //----------------------------------------------------------------------------
-void Layer::feed(std::vector<double> event, bool dropout) 
+void Layer::feed(std::vector<double> event, bool dropout, double prob) 
 {
 	event.push_back(1);
 	double sum;
-
+	double oneminprob = 1 - prob
 	if (!dropout)
 	{
 		for (int i = 0; i < outs; ++i) 
 		{
 			sum = 0;
 			int j;
-			for (j = 0; j < ins; ++j) 
+			for (j = 0; j <= ins; ++j) 
 			{
-				if (include_node(j))
-				{
-					sum += event.at(j) * (Synapse.at(j).at(i));
-				}
+				sum += event.at(j) * (Synapse.at(j).at(i));
 			}
-			sum += event.at(j) * (Synapse.at(j).at(i));
 			Outs.at(i) = sum;
+		}
+	}
+	else if ((prob >= 0) && dropout)
+	{
+		for (int i = 0; i < outs; ++i) 
+		{
+			sum = 0;
+			int j;
+			for (j = 0; j <= ins; ++j) 
+			{
+				sum += (event.at(j) * (Synapse.at(j).at(i))) * prob;
+			}
+			Outs.at(i) = sum;
+		}
+		auto Var ( Outs );
+		for (int i = 0; i < outs; ++i)
+		{
+			Var.at(i) *= (Var.at(i) * oneminprob);
+			Var.at(i) /= prob;
+			std::normal_distribution<double> distribution(Outs.at(i),Var.at(i));
+			Outs.at(i) = distribution( generator );
+		}
+
+		for (int i = 0; i < outs; ++i)
+		{
+			Var.at(i) *= (Var.at(i) * oneminprob);
+			Var.at(i) /= prob;
 		}
 	}
 	else
@@ -295,11 +316,13 @@ void Layer::feed(std::vector<double> event, bool dropout)
 		{
 			sum = 0;
 			int j;
-			for (j = 0; j < ins; ++j) 
+			for (j = 0; j <= ins; ++j) 
 			{
-				sum += (event.at(j) * (Synapse.at(j).at(i))) / 2;
+				if (include_node(j, i))
+				{
+					sum += event.at(j) * (Synapse.at(j).at(i));
+				}
 			}
-			sum += (event.at(j) * (Synapse.at(j).at(i)));
 			Outs.at(i) = sum;
 		}
 	}
@@ -316,21 +339,24 @@ void Layer::drop()
 	for (int j = 0; j < outs; ++j)
 	{
 		int i;
-		for (i = 0; i < ins; ++i)
+		for (i = 0; i <= ins; ++i)
 		{
-			if (include_node(i))
+			if (include_node(i, j))
 			{
 				Synapse.at(i).at(j) +=  DeltaSynapse.at(i).at(j);
 			}
 		}
-		Synapse.at(i).at(j) +=  DeltaSynapse.at(i).at(j);
+		// Synapse.at(i).at(j) +=  DeltaSynapse.at(i).at(j);
 	}
 }
 
 //----------------------------------------------------------------------------
 void Layer::set(int i, int j, double val) 
 {
-	DeltaSynapse.at(i).at(j) = (onemingamma * val) + gamma * DeltaSynapse.at(i).at(j);
+	if (include_node(i, j))
+	{
+		DeltaSynapse.at(i).at(j) = (onemingamma * val) + gamma * DeltaSynapse.at(i).at(j);	
+	}
 }
 
 //----------------------------------------------------------------------------
