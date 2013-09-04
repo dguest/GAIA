@@ -40,7 +40,15 @@ std::vector<double> Architecture::test(std::vector<double> Event, bool dropout)
 
 	for (l = 1; l < (Bundle.size()); ++l)
 	{
-		Bundle.at(l)->feed((Bundle.at(l - 1)->Outs), dropout);
+		if (l == 1)
+		{
+			Bundle.at(l)->feed((Bundle.at(l - 1)->Outs), dropout, 0.5);
+		}
+		else
+		{
+			Bundle.at(l)->feed((Bundle.at(l - 1)->Outs), dropout);
+		}
+		
 	}
 	return std::move(Bundle.at(l - 1)->fire());
 }
@@ -207,7 +215,7 @@ void Architecture::weight_dropout(double prob_out, double prob_input_layer)
 	int idx = 0;
 	for (auto &layer : Bundle)
 	{
-		if (idx != 0)
+		if (idx == 1)
 		{
 			layer->weight_dropout(prob_out);
 		}
