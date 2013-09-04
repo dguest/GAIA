@@ -10,17 +10,19 @@ std::mt19937_64 generator;
 //----------------------------------------------------------------------------
 Layer::Layer(int ins, int outs, bool last, 
 	         std::vector<double> (*Activation_function)(std::vector<double>)/*, 
-	         std::mt19937_64 Generator*/): 
+	         std::mt19937_64 Generator*/, bool dropconnect): 
 			 ins(ins), outs(outs), last(last), Outs(outs, 0.00), 
-             Delta(outs, 0.00), _sigmoid(Activation_function), 
-             Dropout(ins, 1)/*, generator( Generator )*/, DropConnect( dropconnect )
+             Delta(outs, 0.00), _sigmoid(Activation_function) 
+             /*, generator( Generator )*/, DropConnect( dropconnect )
 
 {
 	std::vector<double> new_vec(outs, 0.00);
+	std::vector<unsigned> _vec(outs, 1);
 	for (int i = 0; i < ins + 1; ++i) 
 	{
 		Synapse.push_back(new_vec);
 		DeltaSynapse.push_back(new_vec);
+		Dropout.push_back(_vec);
 	}
 	resetWeights(0.1);
 	setMomentum(0.9);
@@ -56,7 +58,7 @@ void Layer::reset_inclusion()
 	{
 		for (auto &ij : i)
 		{
-			ij = true;
+			ij = 1;
 		}
 	}
 }
@@ -87,7 +89,7 @@ void Layer::weight_dropout(double prob_out)
 	{
 		for (auto &ij : i)
 		{
-			determine_dropout(generator);
+			ij = (determine_dropout(generator) == true ? 1 : 0);
 		}
 	}
 }
@@ -269,7 +271,7 @@ void Layer::feed(std::vector<double> event, bool dropout, double prob)
 {
 	event.push_back(1);
 	double sum;
-	double oneminprob = 1 - prob
+	double oneminprob = 1 - prob;
 	if (!dropout)
 	{
 		for (int i = 0; i < outs; ++i) 

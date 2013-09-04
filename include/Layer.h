@@ -53,7 +53,7 @@ private:
 	// std::mt19937_64 generator;
 	std::vector<std::vector<double> > Synapse, DeltaSynapse;
 	// Layer *Auto_Encoder;
-	std::vector<std::vector<bool> > Dropout;
+	std::vector<std::vector<unsigned int> > Dropout;
 	std::unique_ptr<Layer> Auto_Encoder;
 	std::vector<double> Delta, Outs;
 	std::vector<double> (*_sigmoid)(std::vector<double>);

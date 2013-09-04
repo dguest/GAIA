@@ -90,9 +90,9 @@ void Architecture::backpropagate(
 		for (int i = 0; i < structure.at(l); ++i) 
 		{ // Delta = DSIG * Synapse * prev_Delta
 			val = 0;
-			if (Bundle.at(l)->include_node(i, j))
+			for (int j = 0; j < structure.at(l + 1); ++j) 
 			{
-				for (int j = 0; j < structure.at(l + 1); ++j) 
+				if (Bundle.at(l)->include_node(i, j))
 				{
 					val += _sigmoid_derivative(Bundle.at(l - 1)->Outs.at(i)) * (Bundle.at(l)->Synapse.at(i).at(j)) * (Bundle.at(l)->Delta.at(j));
 				}
