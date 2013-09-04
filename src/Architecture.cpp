@@ -117,7 +117,7 @@ void Architecture::backpropagate(
     	//not plus one because of bias 
     	for (j = 0; j < Bundle.at(0)->ins; j++)
     	{
-    		if (Bundle.at(0)->include_node(0)) // made so weight dropout is possible
+    		if (Bundle.at(0)->include_node(j)) // made so weight dropout is possible
     		{
     			Bundle.at(0)->set(j, i, weight * (-eta * Bundle.at(0)->Delta.at(i) * Event.at(j) - lambda * Bundle.at(0)->Synapse.at(j).at(i)));	
     		}
