@@ -165,14 +165,14 @@ void NeuralNet::train(int n_epochs, int n_train, std::string save_filename, bool
 
 	            if ( good_jet )
 	            {
-	            	if (dropout)
+	            	if ( dropout )
 	            	{
 	            		Net->weight_dropout();
 	            	}
 	        		train(input(), output(), get_physics_reweighting());
 	            }
 	            pct = (((double)(entry)) / ((double) (n_train))) * 100;
-	            if (verbose)
+	            if ( verbose )
 	            {
 	                epoch_progress_bar(pct, i + 1, n_epochs);
 	            }
