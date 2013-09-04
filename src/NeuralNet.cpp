@@ -169,7 +169,7 @@ void NeuralNet::train(int n_epochs, int n_train, std::string save_filename, bool
 	            	{
 	            		Net->weight_dropout();
 	            	}
-	        		train(input(), output(), get_physics_reweighting());
+	        		train(input(), output(), get_physics_reweighting(), dropout);
 	            }
 	            pct = (((double)(entry)) / ((double) (n_train))) * 100;
 	            if ( verbose )
@@ -204,9 +204,9 @@ void NeuralNet::train(int n_epochs, int n_train, std::string save_filename, bool
     save(save_filename);
 }
 //----------------------------------------------------------------------------
-void NeuralNet::train(std::vector<double> Event, std::vector<double> Actual, double weight) 
+void NeuralNet::train(std::vector<double> Event, std::vector<double> Actual, double weight, bool dropout) 
 {
-	std::vector<double> outs((Net->test( transform(Event) )));
+	std::vector<double> outs((Net->test( transform(Event), dropout)));
 	assert ( outs.size() == Actual.size());
 	outs = _softmax_function(outs);
 	for (unsigned int i = 0; i < outs.size(); ++i) 

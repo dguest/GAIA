@@ -23,7 +23,7 @@ public:
 //----------------------------------------------------------------------------
 	Architecture(std::vector<int> structure, std::vector<double> (*sigmoid_function) (std::vector<double>), double (*sigmoid_derivative) (double));
 	~Architecture();
-	std::vector<double> test(std::vector<double> Event, bool dropout = false);
+	std::vector<double> test(std::vector<double> Event, bool dropout = false, bool prediction = false);
 	void backpropagate(std::vector<double> error, std::vector<double> Event, double weight);
 	void setLearning(double x);
 	void make_denoising();

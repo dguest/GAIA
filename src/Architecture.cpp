@@ -33,14 +33,14 @@ Architecture::~Architecture()
 }
 
 //----------------------------------------------------------------------------
-std::vector<double> Architecture::test(std::vector<double> Event, bool dropout) 
+std::vector<double> Architecture::test(std::vector<double> Event, bool dropout, bool prediction) 
 {
 	Bundle.at(0)->feed((Event), dropout);
 	unsigned int l;
 
 	for (l = 1; l < (Bundle.size()); ++l)
 	{
-		if (l == 1)
+		if ((l == 1) && (!prediction))
 		{
 			Bundle.at(l)->feed((Bundle.at(l - 1)->Outs), dropout, 0.5);
 		}
