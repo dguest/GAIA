@@ -29,7 +29,10 @@ NeuralNet::~NeuralNet()
 {
 }
 //----------------------------------------------------------------------------
-NeuralNet::NeuralNet(NeuralNet &A) : Net(std::unique_ptr<Architecture>(new Architecture(A.Net->structure, A.Net->_sigmoid_function, A.Net->_sigmoid_derivative))) 
+NeuralNet::NeuralNet(NeuralNet &A) : 
+Net(std::unique_ptr<Architecture>(new Architecture(A.Net->structure, 
+												   A.Net->_sigmoid_function, 
+												   A.Net->_sigmoid_derivative))) 
 {
 	setActivationFunctions(A._sigmoid, A._sigmoid_derivative, A._softmax_function);
 	for (unsigned int l = 0; l < Net->Bundle.size(); ++l) 
@@ -39,7 +42,6 @@ NeuralNet::NeuralNet(NeuralNet &A) : Net(std::unique_ptr<Architecture>(new Archi
 			for (int j = 0; j < Net->Bundle.at(l)->outs; ++j) 
 			{
 				Net->Bundle.at(l)->Synapse.at(i).at(j) = A.Net->Bundle.at(l)->Synapse.at(i).at(j);
-
 				Net->Bundle.at(l)->DeltaSynapse.at(i).at(j) = A.Net->Bundle.at(l)->DeltaSynapse.at(i).at(j);
 			}
 		}
@@ -56,7 +58,9 @@ NeuralNet& NeuralNet::operator=(const NeuralNet &A)
 	} 
 	else  
 	{
-		Net = std::move(std::unique_ptr<Architecture>(new Architecture(A.Net->structure, A.Net->_sigmoid_function, A.Net->_sigmoid_derivative)));
+		Net = std::move(std::unique_ptr<Architecture>(new Architecture(A.Net->structure, 
+													                   A.Net->_sigmoid_function, 
+													                   A.Net->_sigmoid_derivative)));
 		for (unsigned int l = 0; l < Net->Bundle.size(); ++l) 
 		{
 			for (int i = 0; i <= Net->Bundle.at(l)->ins; ++i) 
