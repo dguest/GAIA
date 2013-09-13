@@ -20,16 +20,12 @@
 #include <string>
 #include <cmath>
 
-//-----------------------------------------------------------------------------
-//	FORWARD DECLARATIONS OF FUNCTIONS AND UTILITY STRUCTURES
-//-----------------------------------------------------------------------------
-
-typedef std::pair<std::string, double> DictElement;
-
-
 //make a namespace for safety
 namespace JetTagger
 {
+//-----------------------------------------------------------------------------
+//	FORWARD DECLARATIONS OF FUNCTIONS AND UTILITY STRUCTURES
+//-----------------------------------------------------------------------------
 	inline double sig(double x) ;
 	inline void vector_print(std::vector<double> v);
 	inline double dsig(double x) ;
@@ -38,7 +34,9 @@ namespace JetTagger
 	inline std::vector<double> softmax(std::vector<double> A) ;
 	inline std::string trim(const std::string& str, const std::string& whitespace = " ");
 
-
+//-----------------------------------------------------------------------------
+//	CLASS: LAYER for mediating inter-layer interactions
+//-----------------------------------------------------------------------------
 	class Layer
 	{
 	public:
@@ -61,11 +59,15 @@ namespace JetTagger
 		double gamma, onemingamma;
 	};
 
+//-----------------------------------------------------------------------------
+//	Implementation of CLASS: LAYER
+//-----------------------------------------------------------------------------
+
 	//----------------------------------------------------------------------------
 	Layer::Layer(int ins, int outs, bool last, 
 		         std::vector<double> (*Activation_function)(std::vector<double>)): 
 				 ins(ins), outs(outs), last(last), Outs(outs, 0.00), 
-	              _sigmoid(Activation_function)
+	             _sigmoid(Activation_function)
 
 	{
 		std::vector<double> new_vec(outs, 0.00);
@@ -111,6 +113,11 @@ namespace JetTagger
 			Outs = _sigmoid(Outs);
 		}
 	}
+
+//-----------------------------------------------------------------------------
+//	CLASS: NETWORKARCHITECTURE for joining layers
+//-----------------------------------------------------------------------------
+
 	class NetworkArchitecture
 	{
 	public:
@@ -148,6 +155,9 @@ namespace JetTagger
 		std::vector<double> (*_sigmoid_function) (std::vector<double>);	
 	};
 
+//-----------------------------------------------------------------------------
+//	Implementation of CLASS: NETWORKARCHITECTURE
+//-----------------------------------------------------------------------------
 	//----------------------------------------------------------------------------
 	NetworkArchitecture::~NetworkArchitecture() 
 	{
@@ -172,7 +182,9 @@ namespace JetTagger
 		return Bundle.at(0)->Synapse;
 	}
 
-
+//-----------------------------------------------------------------------------
+//	CLASS: NEURALNET for dealing with serialization and final prediction
+//-----------------------------------------------------------------------------
 	class NeuralNet
 	{
 	public:
@@ -182,6 +194,7 @@ namespace JetTagger
 		~NeuralNet();
 		NeuralNet( NeuralNet &A );
 
+		bool load_specifications(std::ifstream& spec_file);
 		bool load_specifications(const std::string &filename);
 
 
@@ -194,6 +207,7 @@ namespace JetTagger
 		std::map<std::string, double> predict( std::map<std::string, double> Event );
 		NeuralNet& operator=( const NeuralNet &A );
 		bool load_net( const std::string &filename );
+		bool load_net( std::ifstream& net_file );
 	private:
 	//----------------------------------------------------------------------------
 		std::unique_ptr<NetworkArchitecture> Net;
@@ -206,7 +220,9 @@ namespace JetTagger
 		std::vector<double> (*_sigmoid) (std::vector<double>);
 	};
 
-
+//-----------------------------------------------------------------------------
+//	Implementation of CLASS: NEURALNET
+//-----------------------------------------------------------------------------
 
 	//----------------------------------------------------------------------------
 
@@ -429,6 +445,123 @@ namespace JetTagger
 	    return net_file.good();
 	}
 
+	inline bool NeuralNet::load_net(std::ifstream& net_file) 
+	{
+	    std::string s;
+	    // std::ifstream net_file( filename );
+	    if (!net_file.is_open()) 
+	    {
+	        return 0;
+	    }
+	    std::getline( net_file, s );
+	    if ((s != "#->NNET")) 
+	    {
+	    	std::cout << "\nError: file type not recognised." << std::endl;
+	    	return 0;
+	    }
+	    std::getline( net_file, s );
+	    std::istringstream iss( s );
+	    std::vector<unsigned int> params;
+	    while (std::getline(iss, s, ',')) 
+	    {
+	        unsigned int fieldvalue = 0u;
+	        std::istringstream( s ) >> fieldvalue;
+	        params.push_back( fieldvalue );
+	    }
+	    std::vector<int> layer_struct;
+	    for (unsigned int i = 1; i < params.size(); ++i) 
+	    {
+	    	layer_struct.push_back(params.at(i));
+	    }
+
+	    Net = std::move(std::unique_ptr<NetworkArchitecture>(new NetworkArchitecture(layer_struct, sigmoid, dsig)));
+	    setActivationFunctions(sigmoid, dsig, softmax);
+
+	    std::getline( net_file, s );
+	    std::istringstream n_iss( s );
+	    params.clear();
+	    while (std::getline(n_iss, s, '?')) 
+	    {
+	        unsigned int fieldvalue = 0.00;
+	        std::istringstream( s ) >> fieldvalue;
+	        params.push_back( fieldvalue );
+	    }
+	    bool synapse_phase = 0;
+	    int row_count = -1;
+	    int layer_count = -1;
+	    int trans_count = 0;
+	    while (std::getline( net_file, s )) 
+	    {
+	    	if (s == "BUNDLE") 
+	    	{
+	    		synapse_phase = 1;
+	    		layer_count++;
+	    		row_count = -1;
+	    	}
+	    	else if (s == "TRANS") 
+	    	{
+	    		synapse_phase = 0;
+	    	}
+	    	else if (synapse_phase) 
+	    	{
+	    		row_count++;
+	    		std::vector<double> record;
+		        std::istringstream iss( s );
+		        while (std::getline( iss, s, ',' )) 
+		        {
+		            double fieldvalue = 0.0;
+		            std::istringstream( s ) >> fieldvalue;
+		            record.push_back( fieldvalue );
+		        }
+		        for (unsigned int i = 0; i < record.size(); ++i) 
+		        {
+		        	(Net->Bundle.at(layer_count))->Synapse.at(row_count).at(i) = record.at(i);
+		        }
+	    	}
+			
+
+	    	else if ((!synapse_phase) & (trans_count == 0)) 
+	    	{
+	    		trans_count++;
+	    		std::vector<double> record;
+		        std::istringstream iss( s );
+		        while (std::getline( iss, s, ',' )) 
+		        {
+		            double fieldvalue = 0.0;
+		            std::istringstream( s ) >> fieldvalue;
+		            record.push_back( fieldvalue );
+		        }
+		        mean.resize(record.size());
+		        for (unsigned int i = 0; i < record.size(); ++i) 
+		        {
+		        	mean.at(i) = record.at(i);
+		        }
+	    	}
+	    	else if ((!synapse_phase) & (trans_count == 1)) 
+	    	{
+	    		trans_count++;
+	    		std::vector<double> record;
+		        std::istringstream iss( s );
+		        while (std::getline( iss, s, ',' )) 
+		        {
+		            double fieldvalue = 0.0;
+		            std::istringstream( s ) >> fieldvalue;
+
+		            record.push_back( fieldvalue );
+		        }
+		        stddev.resize(record.size());
+				
+
+		        for (unsigned int i = 0; i < record.size(); ++i) 
+		        {
+		        	stddev.at(i) = record.at(i);
+		        }
+
+	    	}
+	    }
+	    return net_file.good();
+	}
+
 	inline bool NeuralNet::load_specifications(const std::string &filename)
 	{
 		std::string line;
@@ -494,13 +627,75 @@ namespace JetTagger
 	    input_vector.resize(input_names.size(), 0.0);
 	    return FILE.good();
 	}
+	//----------------------------------------------------------------------------
+	inline bool NeuralNet::load_specifications(std::ifstream& spec_file)
+	{
+		std::string line;
+	    bool input_phase = false, output_phase = false, control_phase = false;
+	    if (!spec_file.is_open()) 
+	    {
+	        std::cout << "\nError: Specification file not found." << std::endl;
+	        return 0;
+	    }
+	    while(std::getline( spec_file, line ))
+	    {
+	    	line = trim(line);
+	    	if (line == "input:")
+	    	{
+	    		input_phase = true;
+	    		output_phase = false;
+	    		control_phase = false;
+	    	}
+	    	if (line == "output:")
+	    	{
+	    		output_phase = true;
+	    		input_phase = false;
+	    		control_phase = false;
+	    	}
+	    	if (line == "control:")
+	    	{
+	    		control_phase = true;
+	    		input_phase = false;
+	    		output_phase = false;
+	    	}
+	    	if (line[0] != '#')
+	    	{
+	    		if (input_phase)
+		    	{
+		    		std::string name, type;
+		    		std::istringstream field( line );
+		    		std::getline(field, name, ',');
+		    		std::getline(field, type, ',');
+		    		if ((name != "") && (type != ""))
+		    		{
+		    			input_names.push_back(trim(name));
+		    		}
+		    	}
+		    	else if (output_phase)
+		    	{
+		    		std::string name, type;
+		    		std::istringstream field( line );
+		    		std::getline(field, name, ',');
+		    		std::getline(field, type, ',');
+		    		if ((name != "") && (type != ""))
+		    		{
+		    			output_names.push_back(trim(name));
+		    		}
+		    	}
+	    	}
+	    	else
+	    	{
+	    		std::cout << "Error: Specification file format not recognized." << std::endl;
+	    		return false;
+	    	}
+	    }
+	    input_vector.resize(input_names.size(), 0.0);
+	    return spec_file.good();
+	}
 
-
-	//-----------------------------------------------------------------------------
-	//	Definitions of utility-type functions
-	//-----------------------------------------------------------------------------
-
-
+//-----------------------------------------------------------------------------
+//	Implementation of Forward-Declared functions
+//-----------------------------------------------------------------------------
 
 	//----------------------------------------------------------------------------
 	inline double sig(double x) 
@@ -568,7 +763,7 @@ namespace JetTagger
 	    const auto strRange = strEnd - strBegin + 1;
 	    return str.substr(strBegin, strRange);
 	}
-}
+}// end of namespace JetTagger
 
 
 #endif
