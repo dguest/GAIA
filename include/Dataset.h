@@ -55,8 +55,16 @@ public:
 	*/
 	bool set_control_branch(std::string name, std::string type);
 
-
+	/**
+	\param variable_names A std::vector<std::string> containing the variables of interest to return from the nTuple.
+	\return The map with keys specified by variable_names.
+	*/
 	std::map<std::string, double> get_performance_map(std::vector<std::string> &variable_names);
+
+	/**
+	DOxygen Block
+	*/
+	
 	double get_value(std::string name);
 	void operator[]( const int index );
 	void at( const int index );
