@@ -11,28 +11,33 @@
 #include <iostream>
 #include <algorithm>
 #include <iomanip>
-#include <memory>
 #include <fstream>
 #include <sstream>
 #include <vector>
 #include <assert.h>
-#include <utility>
 #include <string>
 #include <cmath>
 
 //make a namespace for safety
-namespace JetTagger
+namespace JetTagger 
 {
 //-----------------------------------------------------------------------------
 //	FORWARD DECLARATIONS OF FUNCTIONS AND UTILITY STRUCTURES
 //-----------------------------------------------------------------------------
-	inline double sig(double x) ;
-	inline void vector_print(std::vector<double> v);
-	inline double dsig(double x) ;
-	inline std::vector<double> sigmoid(std::vector<double> A) ;
-	inline std::vector<double> dsigmoid(std::vector<double> A) ;
-	inline std::vector<double> softmax(std::vector<double> A) ;
+	const double eta_bins[5] = {0, 0.6, 1.2, 1.8, 2.5};
+	const double pt_bins[8] = {15, 25, 35, 50, 80, 120, 200, 999999};
+	inline double sig(double x);
+	inline double dsig(double x);
+	inline std::vector<double> sigmoid(std::vector<double> A);
+	inline std::vector<double> dsigmoid(std::vector<double> A);
+	inline std::vector<double> softmax(std::vector<double> A);
 	inline std::string trim(const std::string& str, const std::string& whitespace = " ");
+	inline void set_physics_category(double pt, double eta, std::map<std::string, double> &map);
+	template <typename T>
+	void delete_pointed_to(T* const ptr)
+	{
+	    delete ptr;
+	}
 
 //-----------------------------------------------------------------------------
 //	CLASS: LAYER for mediating inter-layer interactions
@@ -134,18 +139,18 @@ namespace JetTagger
 			for (l = 0; l < (layers - 1); ++l) 
 			{
 				final = ((l == (layers - 2)) ? true : false);
-				Bundle.push_back( std::move(std::unique_ptr<Layer>(new Layer(structure.at(l), structure.at(l + 1), final, _sigmoid_function))) );
+				Bundle.push_back( /*std::move(std::unique_ptr<Layer>*/(new Layer(structure.at(l), structure.at(l + 1), final, _sigmoid_function)) );
 			}
 			layers = Bundle.size();
 			lambda = 0;
 		}
 		~NetworkArchitecture();
 		std::vector<double> test(std::vector<double> Event);
-		std::vector<std::vector<double>> get_first_layer();
+		std::vector<std::vector<double> > get_first_layer();
 	private:
 	//----------------------------------------------------------------------------
 		friend class NeuralNet;
-		std::vector< std::unique_ptr<Layer> > Bundle;
+		std::vector< /*std::unique_ptr<*/Layer/*>*/ *> Bundle;
 		std::vector<double> reconstruction_error;
 		std::vector<int> structure;
 		int layers;
@@ -161,6 +166,7 @@ namespace JetTagger
 	//----------------------------------------------------------------------------
 	NetworkArchitecture::~NetworkArchitecture() 
 	{
+		std::for_each(Bundle.begin(), Bundle.end(), delete_pointed_to<Layer>);
 		Bundle.clear();
 	}
 
@@ -174,10 +180,10 @@ namespace JetTagger
 		{
 			Bundle.at(l)->feed((Bundle.at(l - 1)->Outs));
 		}
-		return std::move(Bundle.at(l - 1)->fire());
+		return (Bundle.at(l - 1)->fire());
 	}
 	//----------------------------------------------------------------------------
-	inline std::vector<std::vector<double>> NetworkArchitecture::get_first_layer()
+	inline std::vector<std::vector<double> > NetworkArchitecture::get_first_layer()
 	{
 		return Bundle.at(0)->Synapse;
 	}
@@ -210,7 +216,8 @@ namespace JetTagger
 		bool load_net( std::ifstream& net_file );
 	private:
 	//----------------------------------------------------------------------------
-		std::unique_ptr<NetworkArchitecture> Net;
+		// std::unique_ptr<NetworkArchitecture> Net;
+		NetworkArchitecture *Net;
 		std::vector<int> structure;
 		std::vector<std::string> input_names, output_names;
 		int count;
@@ -232,7 +239,7 @@ namespace JetTagger
 	        mean(structure.at(0), 0.0) 
 	{
 		setActivationFunctions(sigmoid, dsig, softmax);
-		Net = std::move(std::unique_ptr<NetworkArchitecture>(new NetworkArchitecture(structure, _sigmoid, _sigmoid_derivative)));	
+		Net = /*std::move(std::unique_ptr<NetworkArchitecture>*/(new NetworkArchitecture(structure, _sigmoid, _sigmoid_derivative));	
 	}
 	//----------------------------------------------------------------------------
 	NeuralNet::NeuralNet()
@@ -241,10 +248,11 @@ namespace JetTagger
 	//----------------------------------------------------------------------------
 	NeuralNet::~NeuralNet() 
 	{
+		delete_pointed_to(Net);
 	}
 	//----------------------------------------------------------------------------
 	NeuralNet::NeuralNet(NeuralNet &A) : 
-	Net(std::unique_ptr<NetworkArchitecture>(new NetworkArchitecture(A.Net->structure, 
+	Net(/*std::unique_ptr<NetworkArchitecture>*/(new NetworkArchitecture(A.Net->structure, 
 													   A.Net->_sigmoid_function, 
 													   A.Net->_sigmoid_derivative))) 
 	{
@@ -269,9 +277,9 @@ namespace JetTagger
 		} 
 		else  
 		{
-			Net = std::move(std::unique_ptr<NetworkArchitecture>(new NetworkArchitecture(A.Net->structure, 
+			Net = /*std::move(std::unique_ptr<NetworkArchitecture>*/(new NetworkArchitecture(A.Net->structure, 
 														                   A.Net->_sigmoid_function, 
-														                   A.Net->_sigmoid_derivative)));
+														                   A.Net->_sigmoid_derivative));
 			for (unsigned int l = 0; l < Net->Bundle.size(); ++l) 
 			{
 				for (int i = 0; i <= Net->Bundle.at(l)->ins; ++i) 
@@ -298,20 +306,28 @@ namespace JetTagger
 	inline std::map<std::string, double> NeuralNet::predict(std::map<std::string, double> Event) 
 	{
 		int ptr = 0;
-		for (auto &entry : input_names)
+		set_physics_category(Event["pt"], Event["eta"], Event);
+		for (std::vector<std::string>::iterator entry = input_names.begin(); entry != input_names.end(); ++entry)
 		{
-			input_vector.at(ptr) = Event[entry];
+			input_vector.at(ptr) = Event[*entry];
 			++ptr;
 		}
+		// for (auto &entry : input_names)
+		// {
+
+		// 	input_vector.at(ptr) = Event[entry];
+
+		// 	++ptr;
+		// }
 		ptr = 0;
 
-		auto predicted = std::move(_softmax_function(Net->test( transform(input_vector) )));
+		std::vector<double> predicted = /*std::move*/(_softmax_function(Net->test( transform(input_vector) )));
 
 		std::map<std::string, double> outputs;
 
-		for (auto &entry : predicted)
+		for (/*auto &entry : predicted*/std::vector<double>::iterator entry = predicted.begin(); entry != predicted.end(); ++entry)
 		{
-			outputs[output_names[ptr]] = entry;
+			outputs[output_names[ptr]] = *entry;
 			ptr++;
 		}
 		return outputs;
@@ -324,13 +340,13 @@ namespace JetTagger
 			Event.at(i) -= mean.at(i);
 			Event.at(i) /= ((stddev.at(i) < 1e-7) ? 1e-4 : stddev.at(i)); // avoid dirac delta-like variances
 		}	
-		return std::move(Event);
+		return (Event);
 	}
 	//----------------------------------------------------------------------------
 	inline bool NeuralNet::load_net(const std::string &filename) 
 	{
 	    std::string s;
-	    std::ifstream net_file( filename );
+	    std::ifstream net_file( filename.c_str() );
 	    if (!net_file.is_open()) 
 	    {
 	        std::cout << "\nError: File name " << filename << " not found." << std::endl;
@@ -357,7 +373,7 @@ namespace JetTagger
 	    	layer_struct.push_back(params.at(i));
 	    }
 
-	    Net = std::move(std::unique_ptr<NetworkArchitecture>(new NetworkArchitecture(layer_struct, sigmoid, dsig)));
+	    Net = /*std::move(std::unique_ptr<NetworkArchitecture>*/(new NetworkArchitecture(layer_struct, sigmoid, dsig));
 	    setActivationFunctions(sigmoid, dsig, softmax);
 
 	    std::getline( net_file, s );
@@ -474,7 +490,7 @@ namespace JetTagger
 	    	layer_struct.push_back(params.at(i));
 	    }
 
-	    Net = std::move(std::unique_ptr<NetworkArchitecture>(new NetworkArchitecture(layer_struct, sigmoid, dsig)));
+	    Net = /*std::move(std::unique_ptr<NetworkArchitecture>*/(new NetworkArchitecture(layer_struct, sigmoid, dsig));
 	    setActivationFunctions(sigmoid, dsig, softmax);
 
 	    std::getline( net_file, s );
@@ -565,7 +581,7 @@ namespace JetTagger
 	inline bool NeuralNet::load_specifications(const std::string &filename)
 	{
 		std::string line;
-	    std::ifstream FILE( filename );
+	    std::ifstream FILE( filename.c_str() );
 	    bool input_phase = false, output_phase = false, control_phase = false;
 	    if (!FILE.is_open()) 
 	    {
@@ -703,15 +719,6 @@ namespace JetTagger
 		return 1 / (1 + exp(-x));
 	}
 	//----------------------------------------------------------------------------
-	inline void vector_print(std::vector<double> v)
-	{
-	    for (auto i : v)
-	    {
-	        std::cout << i << ",  ";
-	    }
-	    std::cout << "\n";
-	}
-	//----------------------------------------------------------------------------
 	inline double dsig(double x) 
 	{
 		return x * (1 - x);
@@ -720,49 +727,79 @@ namespace JetTagger
 	//----------------------------------------------------------------------------
 	inline std::vector<double> sigmoid(std::vector<double> A) 
 	{
-		for(auto &element : A) 
+		for (std::vector<double>::iterator element = A.begin(); element != A.end(); ++element)
 		{
-			element = sig(element);
+			*element = sig(*element);
 		}
-		return std::move(A);
+		// for(auto &element : A) 
+		// {
+		// 	element = sig(element);
+		// }
+		return (A);
 	}
 	//----------------------------------------------------------------------------
 	inline std::vector<double> dsigmoid(std::vector<double> A) 
 	{
-		for(auto &element : A) 
+		for(/*auto &element : A*/std::vector<double>::iterator element = A.begin(); element != A.end(); ++element) 
 		{
-			element = dsig(element);
+			*element = dsig(*element);
 		}
-		return std::move(A);
+		return (A);
 	}
 	//----------------------------------------------------------------------------
 	inline std::vector<double> softmax(std::vector<double> A) 
 	{
 		double sum = 0;
-		for(auto &element : A) 
+		for(/*auto &element : A*/std::vector<double>::iterator element = A.begin(); element != A.end(); ++element) 
 		{
-			element = exp(element);
-			sum += element;
+			*element = exp(*element);
+			sum += *element;
 		}
-		for(auto &element : A) 
+		for(/*auto &element : A*/std::vector<double>::iterator element = A.begin(); element != A.end(); ++element) 
 		{
-			element /= sum;
+			*element /= sum;
 		}
-		return std::move(A);
+		return (A);
 	}
 	//----------------------------------------------------------------------------
 	inline std::string trim(const std::string& str, const std::string& whitespace)
 	{
-	    const auto strBegin = str.find_first_not_of(whitespace);
+	    const int strBegin = str.find_first_not_of(whitespace);
 	    if (strBegin == std::string::npos)
 	    {
 	    	return ""; // no content
 	    }
 	        
-	    const auto strEnd = str.find_last_not_of(whitespace);
-	    const auto strRange = strEnd - strBegin + 1;
+	    const int strEnd = str.find_last_not_of(whitespace);
+	    const int strRange = strEnd - strBegin + 1;
 	    return str.substr(strBegin, strRange);
 	}
+	//----------------------------------------------------------------------------
+	inline void set_physics_category(double pt, double eta, std::map<std::string, double> &map)
+	{
+		for (int i = 0; i < 7; ++i)
+		{
+			if ((pt >= pt_bins[i]) && (pt < pt_bins[i + 1]))
+			{
+				map["cat_pT"] = i; break;
+			}
+			else
+			{
+				continue;
+			}
+		}
+		for (int i = 0; i < 4; ++i)
+		{
+			if ((fabs(eta) >= eta_bins[i]) && (fabs(eta) < eta_bins[i + 1]))
+			{
+				map["cat_eta"] = i; break;
+			}
+			else
+			{
+				continue;
+			}
+		}
+	}	
 }// end of namespace JetTagger
 
 
