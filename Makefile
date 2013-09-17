@@ -32,7 +32,7 @@ TARGET = TaggerFramework
 $(TARGET): $(OBJ:%=$(BIN)/%)
 	@echo "Linking the target $@"
 	@$(CXX) -o $@ $(CXXFLAGS) $^ $(LIBS) $(LDFLAGS)
-	
+
 $(BIN)/%.o: %.cpp
 	@echo compiling $<
 	@mkdir -p $(BIN)
