@@ -16,7 +16,7 @@
 #include <assert.h>
 #include <string>
 #include <cmath>
-
+#include <stdexcept>
 
 //make a namespace for safety
 namespace JetTagger 
@@ -37,6 +37,8 @@ inline std::string trim(const std::string& str,
 
 inline void set_physics_category(double pt, double eta, 
 								 std::map<std::string, double> &map);
+inline double find_or_throw(const std::map<std::string, double>&, 
+			    const std::string&);
 
 template <typename T>
 void delete_pointed_to(T* const ptr)
@@ -314,13 +316,14 @@ inline std::map<std::string, double> NeuralNet::predict(
 									std::map<std::string, double> Event) 
 {
 	int ptr = 0;
-	set_physics_category(Event["pt"], Event["eta"], Event);
+	set_physics_category(find_or_throw(Event,"pt"), 
+			     find_or_throw(Event,"eta"), Event);
 	for (std::vector<std::string>::iterator entry = 
 		 input_names.begin(); 
 		 entry != input_names.end(); 
 		 ++entry)
 	{
-		input_vector.at(ptr) = Event[*entry];
+		input_vector.at(ptr) = find_or_throw(Event, *entry);
 		++ptr;
 	}
 	ptr = 0;
@@ -798,7 +801,26 @@ inline void set_physics_category(double pt, double eta, std::map<std::string, do
 			continue;
 		}
 	}
+	if (map.count("cat_pT") == 0) { 
+		throw std::range_error("jet outside classifiable pt range");
+	}
+	if (map.count("cat_eta") == 0) { 
+		throw std::range_error("jet outside classifiable eta range"); 
+	}
 }	
+
+// hack for c++03 backport (c++03 has no map::at())
+inline double find_or_throw(const std::map<std::string, double>& map, 
+			    const std::string& key)
+{
+	std::map<std::string, double>::const_iterator in_value = 
+		map.find(key); 
+	if (in_value == map.end()) { 
+		throw std::range_error("no input " + key + " found");
+	}
+	return in_value->second; 
+}
+
 }// end of namespace JetTagger
 
 
