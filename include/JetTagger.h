@@ -77,9 +77,8 @@ private:
 //-----------------------------------------------------------------------------
 Layer::Layer(int ins, int outs, bool last, 
 	         std::vector<double> (*Activation_function)(std::vector<double>)): 
-			 ins(ins), outs(outs), last(last), Outs(outs, 0.00), 
-             _sigmoid(Activation_function)
-
+	Outs(outs, 0.00), _sigmoid(Activation_function), 
+	ins(ins), outs(outs), last(last)
 {
 	std::vector<double> new_vec(outs, 0.00);
 	for (int i = 0; i < ins + 1; ++i) 
@@ -88,9 +87,9 @@ Layer::Layer(int ins, int outs, bool last,
 	}
 }
 //----------------------------------------------------------------------------
-Layer::Layer(std::vector<std::vector<double> > Synapse, bool last) : 
-			 Synapse ( Synapse ), 
-			 Outs(outs, 0.00)
+Layer::Layer(std::vector<std::vector<double> > Synapse, bool /*last*/) : 
+	Synapse ( Synapse ), 
+	Outs(outs, 0.00)
 {
 }
 //----------------------------------------------------------------------------
@@ -134,9 +133,9 @@ public:
 		std::vector<double> (*sigmoid_function) (std::vector<double>), 
 		double (*sigmoid_derivative) (double)):
 			structure( structure ),  
+			is_denoising( false ),
 			_sigmoid_derivative(sigmoid_derivative), 
-			_sigmoid_function(sigmoid_function), 
-			is_denoising( false )
+			_sigmoid_function(sigmoid_function)
 	{
 		layers = structure.size();
 		int l;
@@ -238,8 +237,8 @@ private:
 //-----------------------------------------------------------------------------
 NeuralNet::NeuralNet(std::vector<int> structure): 
         structure( structure ), 
-        stddev(structure.at(0), 1.0), 
-        mean(structure.at(0), 0.0) 
+        mean(structure.at(0), 0.0), 
+        stddev(structure.at(0), 1.0)
 {
 	setActivationFunctions(sigmoid, dsig, softmax);
 	Net = new NetworkArchitecture(structure, _sigmoid, _sigmoid_derivative);
@@ -766,14 +765,14 @@ inline std::vector<double> softmax(std::vector<double> A)
 //----------------------------------------------------------------------------
 inline std::string trim(const std::string& str, const std::string& whitespace)
 {
-    const int strBegin = str.find_first_not_of(whitespace);
+    const size_t strBegin = str.find_first_not_of(whitespace);
     if (strBegin == std::string::npos)
     {
     	return ""; // no content
     }
         
-    const int strEnd = str.find_last_not_of(whitespace);
-    const int strRange = strEnd - strBegin + 1;
+    const size_t strEnd = str.find_last_not_of(whitespace);
+    const size_t strRange = strEnd - strBegin + 1;
     return str.substr(strBegin, strRange);
 }
 //----------------------------------------------------------------------------

@@ -15,4 +15,6 @@ TaggerFramework
 *.la
 *.a
 *_Store
+
+# NN tuning files
 *.nnet
