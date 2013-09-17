@@ -236,6 +236,7 @@ private:
 //	Implementation of CLASS: NEURALNET
 //-----------------------------------------------------------------------------
 NeuralNet::NeuralNet(std::vector<int> structure): 
+	Net(0), 
         structure( structure ), 
         mean(structure.at(0), 0.0), 
         stddev(structure.at(0), 1.0)
@@ -244,7 +245,7 @@ NeuralNet::NeuralNet(std::vector<int> structure):
 	Net = new NetworkArchitecture(structure, _sigmoid, _sigmoid_derivative);
 }
 //----------------------------------------------------------------------------
-NeuralNet::NeuralNet()
+NeuralNet::NeuralNet(): Net(0)
 {
 }
 //----------------------------------------------------------------------------
