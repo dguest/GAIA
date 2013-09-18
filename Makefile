@@ -3,6 +3,7 @@ SRC = src
 INC = include
 
 INSTALLPATH = /usr/local/bin
+HEADERPATH = /usr/local/include
 
 
 vpath %.o    $(BIN)
@@ -26,6 +27,8 @@ LIBS += $(ROOTLIBS)
 
 OBJ = main.o NeuralNet.o Architecture.o Layer.o Activation.o Dataset.o
 
+HEADER = JetTagger.h
+
 TARGET = TaggerFramework
 
 
@@ -46,6 +49,10 @@ install:
 	@echo "Installing $(TARGET) to $(INSTALLPATH)"
 	@rm -rf $(INSTALLPATH)/$(TARGET)
 	@ln $(TARGET) $(INSTALLPATH)/$(TARGET)
+
+header:
+	@echo "Installing $(HEADER) to $(HEADERPATH)"
+	@cp $(INC)/$(HEADER) $(HEADERPATH)
 
 clean:
 	rm -rf $(CLEANLIST) $(CLEANLIST:%=$(BIN)/%)
