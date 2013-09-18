@@ -262,9 +262,9 @@ void NeuralNet::getTransform(bool verbose, bool into_memory, int n_train)
 		}
 	}
 	for (unsigned int j = 0; j < n_cols; ++j) 
-    {
-        stdev[j] = sqrt(stdev[j]);
-    }
+	{
+		stdev[j] = sqrt(stdev[j]);
+	}
 	setTransform(means, stdev);
 }
 //----------------------------------------------------------------------------
