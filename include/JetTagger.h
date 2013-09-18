@@ -204,7 +204,7 @@ public:
 	~NeuralNet();
 	NeuralNet( NeuralNet &A );
 
-	bool load_specifications(std::ifstream& spec_file);
+	bool load_specifications(std::stringstream& spec_file);
 	bool load_specifications(const std::string &filename);
 
 
@@ -219,7 +219,7 @@ public:
 	std::map<std::string, double> predict(std::map<std::string, double> Event);
 	NeuralNet& operator=( const NeuralNet &A );
 	bool load_net( const std::string &filename );
-	bool load_net( std::ifstream& net_file );
+	bool load_net( std::stringstream& net_file );
 private:
 //----------------------------------------------------------------------------
 	NetworkArchitecture *Net;
@@ -468,13 +468,9 @@ inline bool NeuralNet::load_net(const std::string &filename)
     return net_file.good();
 }
 
-inline bool NeuralNet::load_net(std::ifstream& net_file) 
+inline bool NeuralNet::load_net(std::stringstream& net_file) 
 {
     std::string s;
-    if (!net_file.is_open()) 
-    {
-        return 0;
-    }
     std::getline( net_file, s );
     if ((s != "#->NNET")) 
     {
@@ -581,7 +577,7 @@ inline bool NeuralNet::load_net(std::ifstream& net_file)
 
     	}
     }
-    return net_file.good();
+    return !net_file.bad();
 }
 
 inline bool NeuralNet::load_specifications(const std::string &filename)
@@ -650,15 +646,10 @@ inline bool NeuralNet::load_specifications(const std::string &filename)
     return FILE.good();
 }
 //----------------------------------------------------------------------------
-inline bool NeuralNet::load_specifications(std::ifstream& spec_file)
+inline bool NeuralNet::load_specifications(std::stringstream& spec_file)
 {
 	std::string line;
     bool input_phase = false, output_phase = false, control_phase = false;
-    if (!spec_file.is_open()) 
-    {
-        std::cout << "\nError: Specification file not found." << std::endl;
-        return 0;
-    }
     while(std::getline( spec_file, line ))
     {
     	line = trim(line);
@@ -712,7 +703,7 @@ inline bool NeuralNet::load_specifications(std::ifstream& spec_file)
     	}
     }
     input_vector.resize(input_names.size(), 0.0);
-    return spec_file.good();
+    return !spec_file.bad();
 }
 
 //-----------------------------------------------------------------------------
