@@ -3,7 +3,7 @@
 #include <sstream>
 #include <iomanip>
 #include <map>
-#include <JetTagger.h>
+#include "include/JetTagger.h" // won't need include/ if you copy JetTagger.h to your project directory
 
 // utility function to test out the stringstream configuration method
 void add_to_stream(const char* file_name, std::stringstream& spec_stream)
