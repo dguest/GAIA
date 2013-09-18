@@ -38,7 +38,7 @@ $(BIN)/%.o: %.cpp
 	@mkdir -p $(BIN)
 	@$(CXX) -c $(CXXFLAGS) $< -o $@
 
-.PHONY : clean
+.PHONY : clean test
 
 CLEANLIST = *~ *.o *.o~
 
@@ -56,3 +56,13 @@ purge:
 	rm -rf $(BIN)
 	rm -rf $(TARGET) $(INSTALLPATH)/$(TARGET)
 
+# ----- lightweight client example
+
+APP_EXAMPLE = app-example
+
+test: $(APP_EXAMPLE)
+
+$(APP_EXAMPLE): $(APP_EXAMPLE).cxx JetTagger.h
+	@echo "making lightweight example"
+	@$(CXX) $< -o $@
+	@echo "made $(APP_EXAMPLE), run to test!"
