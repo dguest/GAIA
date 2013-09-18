@@ -226,10 +226,10 @@ void NeuralNet::getTransform(bool verbose, bool into_memory, int n_train)
 	}
 	dataset->at(0);
 	std::vector<double> ENTRY(dataset->input());
-    int n_cols = ENTRY.size();
+	int n_cols = ENTRY.size();
 
-    std::vector<double> means(n_cols, 0);
-    std::vector<double> stdev(n_cols, 0);
+	std::vector<double> means(n_cols, 0);
+	std::vector<double> stdev(n_cols, 0);
 
 	for (int i = 0; i < n_estimate; ++i)
 	{
