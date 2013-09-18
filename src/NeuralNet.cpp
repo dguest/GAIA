@@ -9,9 +9,9 @@
 
 //----------------------------------------------------------------------------
 NeuralNet::NeuralNet(std::vector<int> structure): 
-        structure( structure ), 
-        stddev(structure.at(0), 1.0), 
-        mean(structure.at(0), 0.0) 
+                     structure( structure ), 
+                     stddev(structure.at(0), 1.0), 
+                     mean(structure.at(0), 0.0) 
 {
 	learning = 0.1;
 	momentum = 0.5;
@@ -145,14 +145,17 @@ void NeuralNet::setActivationFunctions(std::vector<double> (*sigmoid_function) (
 	_sigmoid = sigmoid_function;
 }
 //----------------------------------------------------------------------------
-void NeuralNet::train(int n_epochs, int n_train, std::string save_filename, bool verbose, std::string timestamp, bool memory)
+void NeuralNet::train(int n_epochs, int n_train, 
+                      std::string save_filename, bool verbose, 
+                      std::string timestamp, bool memory)
 {
 	double pct;
 	if(!memory)
 	{
 		for (int i = 0; i < n_epochs; ++i) 
 	    {
-	    	save(".temp_progress_" + save_filename + std::to_string(i) + "_"+ timestamp + ".nnet"); //save a progress file in case we need to kill the process.
+	    	 //save a progress file in case we need to kill the process.
+	    	save(".temp_progress_" + save_filename + std::to_string(i) + "_"+ timestamp + ".nnet");
 	        for (int entry = 0; entry < n_train; entry++) 
 	        {
 	        	get_dataset_entry(entry);
