@@ -33,12 +33,12 @@ inline std::vector<double> dsigmoid(std::vector<double> A);
 inline std::vector<double> softmax(std::vector<double> A);
 
 inline std::string trim(const std::string& str, 
-						const std::string& whitespace = " ");
+	                    const std::string& whitespace = " ");
 
 inline void set_physics_category(double pt, double eta, 
-								 std::map<std::string, double> &map);
+                                 std::map<std::string, double> &map);
 inline double find_or_throw(const std::map<std::string, double>&, 
-			    const std::string&);
+                            const std::string&);
 
 template <typename T>
 void delete_pointed_to(T* const ptr)
@@ -54,7 +54,7 @@ class Layer
 public:
 //----------------------------------------------------------------------------
 	Layer(int ins, int outs, bool last, 
-		  std::vector<double> (*Activation_function)(std::vector<double>));
+          std::vector<double> (*Activation_function)(std::vector<double>));
 
 	Layer(std::vector<std::vector<double> > Synapse, bool last);
 	~Layer();
@@ -204,7 +204,7 @@ public:
 	~NeuralNet();
 	NeuralNet( NeuralNet &A );
 
-	bool load_specifications(std::ifstream& spec_file);
+	bool load_specifications(std::stringstream& spec_file);
 	bool load_specifications(const std::string &filename);
 
 
@@ -219,7 +219,7 @@ public:
 	std::map<std::string, double> predict(std::map<std::string, double> Event);
 	NeuralNet& operator=( const NeuralNet &A );
 	bool load_net( const std::string &filename );
-	bool load_net( std::ifstream& net_file );
+	bool load_net( std::stringstream& net_file );
 private:
 //----------------------------------------------------------------------------
 	NetworkArchitecture *Net;
@@ -260,8 +260,8 @@ NeuralNet::NeuralNet(NeuralNet &A) :
 		A.Net->_sigmoid_derivative)) 
 {
 	setActivationFunctions(A._sigmoid, 
-						   A._sigmoid_derivative, 
-						   A._softmax_function);
+                           A._sigmoid_derivative, 
+                           A._softmax_function);
 
 	for (unsigned int l = 0; l < Net->Bundle.size(); ++l) 
 	{
@@ -285,8 +285,8 @@ inline NeuralNet& NeuralNet::operator=(const NeuralNet &A)
 	else  
 	{
 		Net = new NetworkArchitecture(A.Net->structure, 
-				                      A.Net->_sigmoid_function, 
-				                      A.Net->_sigmoid_derivative);
+                                      A.Net->_sigmoid_function, 
+                                      A.Net->_sigmoid_derivative);
 		for (unsigned int l = 0; l < Net->Bundle.size(); ++l) 
 		{
 			for (int i = 0; i <= Net->Bundle.at(l)->ins; ++i) 
@@ -294,7 +294,7 @@ inline NeuralNet& NeuralNet::operator=(const NeuralNet &A)
 				for (int j = 0; j < Net->Bundle.at(l)->outs; ++j) 
 				{
 					Net->Bundle.at(l)->Synapse.at(i).at(j) = 
-								A.Net->Bundle.at(l)->Synapse.at(i).at(j);
+                              A.Net->Bundle.at(l)->Synapse.at(i).at(j);
 				}
 			}
 		}
@@ -317,11 +317,9 @@ inline std::map<std::string, double> NeuralNet::predict(
 {
 	int ptr = 0;
 	set_physics_category(find_or_throw(Event,"pt"), 
-			     find_or_throw(Event,"eta"), Event);
-	for (std::vector<std::string>::iterator entry = 
-		 input_names.begin(); 
-		 entry != input_names.end(); 
-		 ++entry)
+        find_or_throw(Event,"eta"), Event);
+	for (std::vector<std::string>::iterator entry = input_names.begin(); 
+        entry != input_names.end(); ++entry)
 	{
 		input_vector.at(ptr) = find_or_throw(Event, *entry);
 		++ptr;
@@ -332,7 +330,8 @@ inline std::map<std::string, double> NeuralNet::predict(
 
 	std::map<std::string, double> outputs;
 
-	for (std::vector<double>::iterator entry = predicted.begin(); entry != predicted.end(); ++entry)
+	for (std::vector<double>::iterator entry = predicted.begin();
+        entry != predicted.end(); ++entry)
 	{
 		outputs[output_names[ptr]] = *entry;
 		ptr++;
@@ -468,13 +467,9 @@ inline bool NeuralNet::load_net(const std::string &filename)
     return net_file.good();
 }
 
-inline bool NeuralNet::load_net(std::ifstream& net_file) 
+inline bool NeuralNet::load_net(std::stringstream& net_file) 
 {
     std::string s;
-    if (!net_file.is_open()) 
-    {
-        return 0;
-    }
     std::getline( net_file, s );
     if ((s != "#->NNET")) 
     {
@@ -581,7 +576,7 @@ inline bool NeuralNet::load_net(std::ifstream& net_file)
 
     	}
     }
-    return net_file.good();
+    return !net_file.bad();
 }
 
 inline bool NeuralNet::load_specifications(const std::string &filename)
@@ -650,15 +645,10 @@ inline bool NeuralNet::load_specifications(const std::string &filename)
     return FILE.good();
 }
 //----------------------------------------------------------------------------
-inline bool NeuralNet::load_specifications(std::ifstream& spec_file)
+inline bool NeuralNet::load_specifications(std::stringstream& spec_file)
 {
 	std::string line;
     bool input_phase = false, output_phase = false, control_phase = false;
-    if (!spec_file.is_open()) 
-    {
-        std::cout << "\nError: Specification file not found." << std::endl;
-        return 0;
-    }
     while(std::getline( spec_file, line ))
     {
     	line = trim(line);
@@ -712,7 +702,7 @@ inline bool NeuralNet::load_specifications(std::ifstream& spec_file)
     	}
     }
     input_vector.resize(input_names.size(), 0.0);
-    return spec_file.good();
+    return !spec_file.bad();
 }
 
 //-----------------------------------------------------------------------------

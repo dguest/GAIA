@@ -9,9 +9,9 @@
 
 //----------------------------------------------------------------------------
 NeuralNet::NeuralNet(std::vector<int> structure): 
-        structure( structure ), 
-        stddev(structure.at(0), 1.0), 
-        mean(structure.at(0), 0.0) 
+                     structure( structure ), 
+                     stddev(structure.at(0), 1.0), 
+                     mean(structure.at(0), 0.0) 
 {
 	learning = 0.1;
 	momentum = 0.5;
@@ -30,9 +30,7 @@ NeuralNet::~NeuralNet()
 }
 //----------------------------------------------------------------------------
 NeuralNet::NeuralNet(NeuralNet &A) : 
-Net(std::unique_ptr<Architecture>(new Architecture(A.Net->structure, 
-												   A.Net->_sigmoid_function, 
-												   A.Net->_sigmoid_derivative))) 
+Net(std::unique_ptr<Architecture>(new Architecture(A.Net->structure, A.Net->_sigmoid_function, A.Net->_sigmoid_derivative))) 
 {
 	setActivationFunctions(A._sigmoid, A._sigmoid_derivative, A._softmax_function);
 	for (unsigned int l = 0; l < Net->Bundle.size(); ++l) 
@@ -58,9 +56,7 @@ NeuralNet& NeuralNet::operator=(const NeuralNet &A)
 	} 
 	else  
 	{
-		Net = std::move(std::unique_ptr<Architecture>(new Architecture(A.Net->structure, 
-													                   A.Net->_sigmoid_function, 
-													                   A.Net->_sigmoid_derivative)));
+		Net = std::move(std::unique_ptr<Architecture>(new Architecture(A.Net->structure, A.Net->_sigmoid_function, A.Net->_sigmoid_derivative)));
 		for (unsigned int l = 0; l < Net->Bundle.size(); ++l) 
 		{
 			for (int i = 0; i <= Net->Bundle.at(l)->ins; ++i) 
@@ -149,14 +145,17 @@ void NeuralNet::setActivationFunctions(std::vector<double> (*sigmoid_function) (
 	_sigmoid = sigmoid_function;
 }
 //----------------------------------------------------------------------------
-void NeuralNet::train(int n_epochs, int n_train, std::string save_filename, bool verbose, std::string timestamp, bool memory)
+void NeuralNet::train(int n_epochs, int n_train, 
+                      std::string save_filename, bool verbose, 
+                      std::string timestamp, bool memory)
 {
 	double pct;
 	if(!memory)
 	{
 		for (int i = 0; i < n_epochs; ++i) 
 	    {
-	    	save(".temp_progress_" + save_filename + std::to_string(i) + "_"+ timestamp + ".nnet"); //save a progress file in case we need to kill the process.
+	    	 //save a progress file in case we need to kill the process.
+	    	save(".temp_progress_" + save_filename + std::to_string(i) + "_"+ timestamp + ".nnet");
 	        for (int entry = 0; entry < n_train; entry++) 
 	        {
 	        	get_dataset_entry(entry);
@@ -230,10 +229,10 @@ void NeuralNet::getTransform(bool verbose, bool into_memory, int n_train)
 	}
 	dataset->at(0);
 	std::vector<double> ENTRY(dataset->input());
-    int n_cols = ENTRY.size();
+	int n_cols = ENTRY.size();
 
-    std::vector<double> means(n_cols, 0);
-    std::vector<double> stdev(n_cols, 0);
+	std::vector<double> means(n_cols, 0);
+	std::vector<double> stdev(n_cols, 0);
 
 	for (int i = 0; i < n_estimate; ++i)
 	{
@@ -266,9 +265,9 @@ void NeuralNet::getTransform(bool verbose, bool into_memory, int n_train)
 		}
 	}
 	for (unsigned int j = 0; j < n_cols; ++j) 
-    {
-        stdev[j] = sqrt(stdev[j]);
-    }
+	{
+		stdev[j] = sqrt(stdev[j]);
+	}
 	setTransform(means, stdev);
 }
 //----------------------------------------------------------------------------

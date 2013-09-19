@@ -5,8 +5,8 @@
 */
 
 
-#ifndef _ACTIVATION
-#define _ACTIVATION
+#ifndef ACTIVATION_H
+#define ACTIVATION_H
 
 #include <stdlib.h>
 #include <iostream>
