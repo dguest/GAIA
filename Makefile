@@ -20,10 +20,12 @@ LDFLAGS =
 #-L/usr/local/opt/boost/lib
 
 ROOTCFLAGS = $(shell root-config --cflags)
-ROOTLIBS = $(shell root-config --libs)
+ROOTLIBS = -L$(shell root-config --libdir) -lTree
+ROOTLDFLAGS = $(shell root-config --ldflags)
 
 CXXFLAGS += $(ROOTCFLAGS)
 LIBS += $(ROOTLIBS)
+LDFLAGS += $(ROOTLDFLAGS)
 
 OBJ = main.o NeuralNet.o Architecture.o Layer.o Activation.o Dataset.o
 
@@ -34,7 +36,7 @@ TARGET = TaggerFramework
 
 $(TARGET): $(OBJ:%=$(BIN)/%)
 	@echo "Linking the target $@"
-	@$(CXX) -o $@ $(CXXFLAGS) $^ $(LIBS) $(LDFLAGS)
+	@$(CXX) -o $@ $^ $(LIBS) $(LDFLAGS)
 
 $(BIN)/%.o: %.cpp
 	@echo compiling $<
