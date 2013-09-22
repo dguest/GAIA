@@ -20,7 +20,8 @@ LDFLAGS =
 #-L/usr/local/opt/boost/lib
 
 ROOTCFLAGS = $(shell root-config --cflags)
-ROOTLIBS = -L$(shell root-config --libdir) -lTree
+ROOTLIBS = $(shell root-config --libs)
+# ROOTLIBS = -L$(shell root-config --libdir) -lTree
 ROOTLDFLAGS = $(shell root-config --ldflags)
 
 CXXFLAGS += $(ROOTCFLAGS)
