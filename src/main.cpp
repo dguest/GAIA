@@ -38,6 +38,7 @@ int main(int argc, char *argv[])
                 string_struct, 
                 tree_name, 
                 root_filename, 
+                resume_file,
                 spec_file = "";
 
     bool in_flag = false,
@@ -87,6 +88,8 @@ int main(int argc, char *argv[])
             else if ((std::string(argv[i]) == "-resume")) 
             {
                 resume = true;
+                resume_file = std::string(argv[i + 1]);
+                ++i;
             } 
             else if ((std::string(argv[i]) == "-encode")) 
             {
@@ -219,6 +222,13 @@ int main(int argc, char *argv[])
     net.set_dataset(root_filename, tree_name);
 
     net.load_specifications(spec_file);
+
+
+    if (resume)
+    {
+        std::cout << "Resuming training from " << resume_file << "..." << std::endl;
+        net.load(resume_file);
+    }
 
     if(!(load_flag)) //training case for charm tag    
     {
