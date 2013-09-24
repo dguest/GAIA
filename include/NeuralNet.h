@@ -34,10 +34,8 @@ public:
 	NeuralNet();
 	~NeuralNet();
 	NeuralNet( NeuralNet &A );
-
 	void set_dataset(std::string root_file = "", std::string tree_name = "");
 	void get_dataset_entry(const int index);
-
 	bool set_input_branch(std::string name, std::string type);
 	bool set_output_branch(std::string name, std::string type);
 	bool set_control_branch(std::string name, std::string type);
