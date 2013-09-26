@@ -24,7 +24,6 @@ std::vector<double> dsigmoid(std::vector<double> A);
 std::vector<double> softmax(std::vector<double> A);
 void vector_print(std::vector<double> v);
 
-
 /**
 \param str The input string to be stripped of trailing and leading whitespace.
 \param whitespace the whitespace string to be removed.

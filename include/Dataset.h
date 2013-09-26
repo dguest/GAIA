@@ -25,35 +25,41 @@ struct Reweighting
 class Dataset
 {
 public:
+	//----------------------------------------------------------------------------
 	/**
 	\details The ROOT file and the TTree to be used MUST be specified upon instantiation.
 	\param root_file The filename of the TFile to be loaded.
 	\param tree_name The name of the TTree holding the nTuple to be used.
 	*/
 	Dataset(std::string root_file = "", std::string tree_name = "");
-
+	//----------------------------------------------------------------------------
 	/**
 	\details Default Destructor.
 	*/
 	~Dataset();
-
+	//----------------------------------------------------------------------------
 	/**
 	\param name Name of the branch to set as an input variable to the Neural Network.
 	\param type A string containing the numeric type of the elements of this branch. Can be one of "int", "double", "float".
+	\return Returns a 1 if setting the branch was sucessful, 0 otherwise.
 	*/
 	bool set_input_branch(std::string name, std::string type);
 
 	/**
 	\param name Name of the branch to set as an output variable to the Neural Network.
 	\param type A string containing the numeric type of the elements of this branch. Can be one of "int", "double", "float".
+	\return Returns a 1 if setting the branch was sucessful, 0 otherwise.
 	*/
 	bool set_output_branch(std::string name, std::string type);
+
 
 	/**
 	\param name Name of the branch to set as an control variable to the Neural Network.
 	\param type A string containing the numeric type of the elements of this branch. Can be one of "int", "double", "float".
+	\return Returns a 1 if setting the branch was sucessful, 0 otherwise.
 	*/
 	bool set_control_branch(std::string name, std::string type);
+
 
 	/**
 	\param variable_names A std::vector<std::string> containing the variables of interest to return from the nTuple.
@@ -61,9 +67,6 @@ public:
 	*/
 	std::map<std::string, double> get_performance_map(std::vector<std::string> &variable_names);
 
-	/**
-	DOxygen Block
-	*/
 	
 	double get_value(std::string name);
 	void operator[]( const int index );

@@ -74,3 +74,5 @@ std::string trim(const std::string& str, const std::string& whitespace)
     return str.substr(strBegin, strRange);
 }
 
+
+
