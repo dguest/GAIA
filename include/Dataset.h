@@ -44,7 +44,7 @@ public:
 	\return Returns a 1 if setting the branch was sucessful, 0 otherwise.
 	*/
 	bool set_input_branch(std::string name, std::string type);
-
+	//----------------------------------------------------------------------------
 	/**
 	\param name Name of the branch to set as an output variable to the Neural Network.
 	\param type A string containing the numeric type of the elements of this branch. Can be one of "int", "double", "float".
@@ -52,7 +52,7 @@ public:
 	*/
 	bool set_output_branch(std::string name, std::string type);
 
-
+	//----------------------------------------------------------------------------
 	/**
 	\param name Name of the branch to set as an control variable to the Neural Network.
 	\param type A string containing the numeric type of the elements of this branch. Can be one of "int", "double", "float".
