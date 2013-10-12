@@ -280,12 +280,57 @@ void Dataset::determine_reweighting()
 	}
 	for (int cat_pT = 0; cat_pT < 7; ++cat_pT)
 	{
-		for (int cat_eta = 0; cat_eta < 4; ++cat_eta)
+		for (int cat_eta = 1; cat_eta < 4; ++cat_eta)
 		{
-			bottom_correction[cat_pT][cat_eta] = std::min(std::max(light_hist[cat_pT][cat_eta], 1.0) / ((5.17 / 4.0) * std::max(bottom_hist[cat_pT][cat_eta], 1.0)), 20.0);
-			charm_correction[cat_pT][cat_eta] = std::min(std::max(light_hist[cat_pT][cat_eta], 1.0) / (2.5 * std::max(charm_hist[cat_pT][cat_eta], 1.0)), 20.0);
+			light_hist[cat_pT][cat_eta] += light_hist[cat_pT][cat_eta - 1];
+			charm_hist[cat_pT][cat_eta] += charm_hist[cat_pT][cat_eta - 1];
+			bottom_hist[cat_pT][cat_eta] += bottom_hist[cat_pT][cat_eta - 1];
 		}
 	}
+
+	for (int cat_eta = 0; cat_eta < 4; ++cat_eta)
+	{
+		for (int cat_pT = 1; cat_pT < 7; ++cat_pT)
+		{
+			light_hist[cat_pT][cat_eta] += light_hist[cat_pT - 1][cat_eta];
+			charm_hist[cat_pT][cat_eta] += charm_hist[cat_pT - 1][cat_eta];
+			bottom_hist[cat_pT][cat_eta] += bottom_hist[cat_pT - 1][cat_eta];
+		}
+	}
+	int light_total = light_hist[6][3];
+	int charm_total = charm_hist[6][3];
+	int bottom_total = light_hist[6][3];
+
+	for (int cat_pT = 0; cat_pT < 7; ++cat_pT)
+	{
+		for (int cat_eta = 0; cat_eta < 4; ++cat_eta)
+		{
+			light_hist[cat_pT][cat_eta] /= light_total;
+			charm_hist[cat_pT][cat_eta] /= charm_total;
+			bottom_hist[cat_pT][cat_eta] /= bottom_total;
+		}
+	}
+
+
+	for (int cat_pT = 0; cat_pT < 7; ++cat_pT)
+	{
+		for (int cat_eta = 0; cat_eta < 4; ++cat_eta)
+		{
+			light_correction[cat_pT][cat_eta] = 1 / light_hist[cat_pT][cat_eta];
+			charm_correction[cat_pT][cat_eta] = 1 / charm_hist[cat_pT][cat_eta];
+			bottom_correction[cat_pT][cat_eta] = 1 / bottom_hist[cat_pT][cat_eta];
+		}
+	}
+
+
+	// for (int cat_pT = 0; cat_pT < 7; ++cat_pT)
+	// {
+	// 	for (int cat_eta = 0; cat_eta < 4; ++cat_eta)
+	// 	{
+	// 		bottom_correction[cat_pT][cat_eta] = std::min(std::max(light_hist[cat_pT][cat_eta], 1.0) / ((1.0) * std::max(bottom_hist[cat_pT][cat_eta], 1.0)), 20.0);
+	// 		charm_correction[cat_pT][cat_eta] = std::min(std::max(light_hist[cat_pT][cat_eta], 1.0) / (5.0 * std::max(charm_hist[cat_pT][cat_eta], 1.0)), 20.0);
+	// 	}
+	// }
 	reweighting.charm_correction = charm_correction;
 	reweighting.bottom_correction = bottom_correction;
 }
