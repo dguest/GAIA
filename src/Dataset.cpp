@@ -322,7 +322,6 @@ void Dataset::determine_reweighting(bool cdf, bool relative)
 			}
 		}
 
-		std::cout << "charm_factor = " << charm_factor << ", bottom_factor = " << bottom_factor << ", light_factor = " << light_factor <<std::endl;
 
 		for (int cat_pT = 0; cat_pT < 7; ++cat_pT)
 		{
@@ -342,24 +341,6 @@ void Dataset::determine_reweighting(bool cdf, bool relative)
 					charm_correction[cat_pT][cat_eta] /= light_correction[cat_pT][cat_eta];
 					bottom_correction[cat_pT][cat_eta] /= light_correction[cat_pT][cat_eta];
 				}
-			}
-			for (int i = 0; i < 7; ++i)
-			{
-				for (int j = 0; j < 4; ++j)
-				{
-					std::cout << "  " << charm_correction[i][j];
-				}
-				std::cout << "\n";
-			}
-
-			std::cout << "\n\n\n";
-			for (int i = 0; i < 7; ++i)
-			{
-				for (int j = 0; j < 4; ++j)
-				{
-					std::cout << "  " << bottom_correction[i][j];
-				}
-				std::cout << "\n";
 			}
 		}
 	}
