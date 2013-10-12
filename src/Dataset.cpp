@@ -242,6 +242,7 @@ void Dataset::determine_reweighting(bool cdf, bool relative)
 	charm_hist.resize(7);
 	bottom_hist.resize(7);
 	light_hist.resize(7);
+	double charm_pct = 0.20, bottom_pct = 0.50, light_pct = 0.50;
 	for (int i = 0; i < 7; ++i)
 	{
 		charm_correction[i].resize(4);
@@ -280,89 +281,100 @@ void Dataset::determine_reweighting(bool cdf, bool relative)
 		}
 
 	}
-	for (int cat_pT = 0; cat_pT < 7; ++cat_pT)
+	if (cdf)
 	{
-		for (int cat_eta = 1; cat_eta < 4; ++cat_eta)
+		for (int cat_pT = 0; cat_pT < 7; ++cat_pT)
 		{
-			light_hist[cat_pT][cat_eta] += light_hist[cat_pT][cat_eta - 1];
-			charm_hist[cat_pT][cat_eta] += charm_hist[cat_pT][cat_eta - 1];
-			bottom_hist[cat_pT][cat_eta] += bottom_hist[cat_pT][cat_eta - 1];
+			for (int cat_eta = 1; cat_eta < 4; ++cat_eta)
+			{
+				light_hist[cat_pT][cat_eta] += light_hist[cat_pT][cat_eta - 1];
+				charm_hist[cat_pT][cat_eta] += charm_hist[cat_pT][cat_eta - 1];
+				bottom_hist[cat_pT][cat_eta] += bottom_hist[cat_pT][cat_eta - 1];
+			}
 		}
-	}
 
 
-	for (int cat_eta = 0; cat_eta < 4; ++cat_eta)
-	{
-		for (int cat_pT = 1; cat_pT < 7; ++cat_pT)
-		{
-			light_hist[cat_pT][cat_eta] += light_hist[cat_pT - 1][cat_eta];
-			charm_hist[cat_pT][cat_eta] += charm_hist[cat_pT - 1][cat_eta];
-			bottom_hist[cat_pT][cat_eta] += bottom_hist[cat_pT - 1][cat_eta];
-		}
-	}
-	int light_total = light_hist[6][3];
-	int charm_total = charm_hist[6][3];
-	int bottom_total = bottom_hist[6][3];
-
-	for (int cat_pT = 0; cat_pT < 7; ++cat_pT)
-	{
 		for (int cat_eta = 0; cat_eta < 4; ++cat_eta)
 		{
-			light_hist[cat_pT][cat_eta] /= light_total;
-			charm_hist[cat_pT][cat_eta] /= charm_total;
-			bottom_hist[cat_pT][cat_eta] /= bottom_total;
+			for (int cat_pT = 1; cat_pT < 7; ++cat_pT)
+			{
+				light_hist[cat_pT][cat_eta] += light_hist[cat_pT - 1][cat_eta];
+				charm_hist[cat_pT][cat_eta] += charm_hist[cat_pT - 1][cat_eta];
+				bottom_hist[cat_pT][cat_eta] += bottom_hist[cat_pT - 1][cat_eta];
+			}
 		}
-	}
+		int light_total = light_hist[6][3];
+		int charm_total = charm_hist[6][3];
+		int bottom_total = bottom_hist[6][3];
+		int total = light_total + charm_total + bottom_total;
 
-	for (int cat_pT = 0; cat_pT < 7; ++cat_pT)
-	{
-		for (int cat_eta = 0; cat_eta < 4; ++cat_eta)
+		double charm_factor = charm_pct / ((double)charm_total / (double)total);
+		double bottom_factor = bottom_pct / ((double)bottom_total / (double)total);
+		double light_factor = light_pct / ((double)light_total / (double)total);
+
+		for (int cat_pT = 0; cat_pT < 7; ++cat_pT)
 		{
-			light_correction[cat_pT][cat_eta] = 1 / light_hist[cat_pT][cat_eta];
-			charm_correction[cat_pT][cat_eta] = 1 / charm_hist[cat_pT][cat_eta];
-			bottom_correction[cat_pT][cat_eta] = 1 / bottom_hist[cat_pT][cat_eta];
+			for (int cat_eta = 0; cat_eta < 4; ++cat_eta)
+			{
+				light_hist[cat_pT][cat_eta] /= light_total;
+				charm_hist[cat_pT][cat_eta] /= charm_total;
+				bottom_hist[cat_pT][cat_eta] /= bottom_total;
+			}
 		}
-	}
 
-	for (int i = 0; i < 7; ++i)
-	{
-		for (int j = 0; j < 4; ++j)
+		std::cout << "charm_factor = " << charm_factor << ", bottom_factor = " << bottom_factor << ", light_factor = " << light_factor <<std::endl;
+
+		for (int cat_pT = 0; cat_pT < 7; ++cat_pT)
 		{
-			std::cout << "  " << light_correction[i][j];
+			for (int cat_eta = 0; cat_eta < 4; ++cat_eta)
+			{
+				light_correction[cat_pT][cat_eta] = light_factor * (1 / light_hist[cat_pT][cat_eta]);
+				charm_correction[cat_pT][cat_eta] = charm_factor * (1 / charm_hist[cat_pT][cat_eta]);
+				bottom_correction[cat_pT][cat_eta] = bottom_factor * (1 / bottom_hist[cat_pT][cat_eta]);
+			}
 		}
-		std::cout << "\n";
-	}
-
-	std::cout << "\n\n\n";
-
-	for (int i = 0; i < 7; ++i)
-	{
-		for (int j = 0; j < 4; ++j)
+		if (relative)
 		{
-			std::cout << "  " << bottom_correction[i][j];
+			for (int cat_pT = 0; cat_pT < 7; ++cat_pT)
+			{
+				for (int cat_eta = 0; cat_eta < 4; ++cat_eta)
+				{
+					charm_correction[cat_pT][cat_eta] /= light_correction[cat_pT][cat_eta];
+					bottom_correction[cat_pT][cat_eta] /= light_correction[cat_pT][cat_eta];
+				}
+			}
+			for (int i = 0; i < 7; ++i)
+			{
+				for (int j = 0; j < 4; ++j)
+				{
+					std::cout << "  " << charm_correction[i][j];
+				}
+				std::cout << "\n";
+			}
+
+			std::cout << "\n\n\n";
+			for (int i = 0; i < 7; ++i)
+			{
+				for (int j = 0; j < 4; ++j)
+				{
+					std::cout << "  " << bottom_correction[i][j];
+				}
+				std::cout << "\n";
+			}
 		}
-		std::cout << "\n";
 	}
-
-	std::cout << "\n\n\n";
-
-	for (int i = 0; i < 7; ++i)
+	else
 	{
-		for (int j = 0; j < 4; ++j)
+		for (int cat_pT = 0; cat_pT < 7; ++cat_pT)
 		{
-			std::cout << "  " << charm_correction[i][j];
+			for (int cat_eta = 0; cat_eta < 4; ++cat_eta)
+			{
+				bottom_correction[cat_pT][cat_eta] = std::min(std::max(light_hist[cat_pT][cat_eta], 1.0) / ((1.0) * std::max(bottom_hist[cat_pT][cat_eta], 1.0)), 20.0);
+				charm_correction[cat_pT][cat_eta] = std::min(std::max(light_hist[cat_pT][cat_eta], 1.0) / (5.0 * std::max(charm_hist[cat_pT][cat_eta], 1.0)), 20.0);
+			}
 		}
-		std::cout << "\n";
 	}
-
-	// for (int cat_pT = 0; cat_pT < 7; ++cat_pT)
-	// {
-	// 	for (int cat_eta = 0; cat_eta < 4; ++cat_eta)
-	// 	{
-	// 		bottom_correction[cat_pT][cat_eta] = std::min(std::max(light_hist[cat_pT][cat_eta], 1.0) / ((1.0) * std::max(bottom_hist[cat_pT][cat_eta], 1.0)), 20.0);
-	// 		charm_correction[cat_pT][cat_eta] = std::min(std::max(light_hist[cat_pT][cat_eta], 1.0) / (5.0 * std::max(charm_hist[cat_pT][cat_eta], 1.0)), 20.0);
-	// 	}
-	// }
+	
 	reweighting.charm_correction = charm_correction;
 	reweighting.bottom_correction = bottom_correction;
 }
