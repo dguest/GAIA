@@ -59,9 +59,9 @@ public:
 	void train(int n_epochs, int n_train, std::string save_filename, 
 		       bool verbose = 0, std::string timestamp = "", bool memory = false);
 
-	void train( std::vector<double> Event, std::vector<double> Actual, double weight = 1);
+	void train(std::vector<double> Event, std::vector<double> Actual, double weight = 1);
 
-	void getTransform(bool verbose = false, bool into_memory = 0, int n_train = -1);
+	void getTransform(bool verbose = false, bool into_memory = 0, int n_train = -1, bool cdf_weight = false, bool relative = true);
 	void setTransform( std::vector<double> Mean, std::vector<double> Stddev );
 
 

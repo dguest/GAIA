@@ -217,9 +217,9 @@ std::vector<double> NeuralNet::predict(std::vector<double> Event)
 	return std::move(_softmax_function(Net->test( transform(Event) )));
 }
 //----------------------------------------------------------------------------
-void NeuralNet::getTransform(bool verbose, bool into_memory, int n_train) 
+void NeuralNet::getTransform(bool verbose, bool into_memory, int n_train, bool cdf_weight, bool relative) 
 {
-	dataset->determine_reweighting();
+	dataset->determine_reweighting(cdf_weight, relative);
 	int n_estimate = ((n_train < 0) ? (dataset->num_entries() / 20) : n_train);
 	unsigned int n = 0;
 	double pct, temp;    

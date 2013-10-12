@@ -49,6 +49,8 @@ int main(int argc, char *argv[])
          memory = false,
          resume = false,
          struct_flag = false,
+         cdf = false,
+         relative = false,
          encode = false;
 
     int n_train = 0, 
@@ -84,6 +86,14 @@ int main(int argc, char *argv[])
             else if ((std::string(argv[i]) == "-v")) 
             {
                 verbose = true;
+            }
+            else if ((std::string(argv[i]) == "-relative")) 
+            {
+                relative = true;
+            }
+            else if ((std::string(argv[i]) == "-cdf")) 
+            {
+                cdf = true;
             } 
             else if ((std::string(argv[i]) == "-resume")) 
             {
