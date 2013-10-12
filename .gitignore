@@ -19,3 +19,6 @@ TaggerFramework
 # NN tuning files
 *.nnet
 app-example
+
+#mac directory structure storage
+.DS_Store
