@@ -83,7 +83,7 @@ public:
 
 
 	double get_physics_reweighting();
-	void determine_reweighting();
+	void determine_reweighting(bool cdf = true, bool relative = true);
 	
 private:
 	TFile *file;

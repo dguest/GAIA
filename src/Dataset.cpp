@@ -232,12 +232,13 @@ unsigned int Dataset::num_entries()
 	return n_entries;
 }
 //----------------------------------------------------------------------------
-void Dataset::determine_reweighting()
+void Dataset::determine_reweighting(bool cdf, bool relative)
 {
-	int n_estimate = n_entries / 20;
-	std::vector<std::vector<double> > charm_correction, bottom_correction, charm_hist, bottom_hist, light_hist;
+	int n_estimate = n_entries / 10;
+	std::vector<std::vector<double> > charm_correction, light_correction, bottom_correction, charm_hist, bottom_hist, light_hist;
 	charm_correction.resize(7);
 	bottom_correction.resize(7);
+	light_correction.resize(7);
 	charm_hist.resize(7);
 	bottom_hist.resize(7);
 	light_hist.resize(7);
@@ -245,6 +246,7 @@ void Dataset::determine_reweighting()
 	{
 		charm_correction[i].resize(4);
 		bottom_correction[i].resize(4);
+		light_correction[i].resize(4);
 		charm_hist[i].resize(4);
 		bottom_hist[i].resize(4);
 		light_hist[i].resize(4);
@@ -288,6 +290,7 @@ void Dataset::determine_reweighting()
 		}
 	}
 
+
 	for (int cat_eta = 0; cat_eta < 4; ++cat_eta)
 	{
 		for (int cat_pT = 1; cat_pT < 7; ++cat_pT)
@@ -299,7 +302,7 @@ void Dataset::determine_reweighting()
 	}
 	int light_total = light_hist[6][3];
 	int charm_total = charm_hist[6][3];
-	int bottom_total = light_hist[6][3];
+	int bottom_total = bottom_hist[6][3];
 
 	for (int cat_pT = 0; cat_pT < 7; ++cat_pT)
 	{
@@ -311,7 +314,6 @@ void Dataset::determine_reweighting()
 		}
 	}
 
-
 	for (int cat_pT = 0; cat_pT < 7; ++cat_pT)
 	{
 		for (int cat_eta = 0; cat_eta < 4; ++cat_eta)
@@ -322,6 +324,36 @@ void Dataset::determine_reweighting()
 		}
 	}
 
+	for (int i = 0; i < 7; ++i)
+	{
+		for (int j = 0; j < 4; ++j)
+		{
+			std::cout << "  " << light_correction[i][j];
+		}
+		std::cout << "\n";
+	}
+
+	std::cout << "\n\n\n";
+
+	for (int i = 0; i < 7; ++i)
+	{
+		for (int j = 0; j < 4; ++j)
+		{
+			std::cout << "  " << bottom_correction[i][j];
+		}
+		std::cout << "\n";
+	}
+
+	std::cout << "\n\n\n";
+
+	for (int i = 0; i < 7; ++i)
+	{
+		for (int j = 0; j < 4; ++j)
+		{
+			std::cout << "  " << charm_correction[i][j];
+		}
+		std::cout << "\n";
+	}
 
 	// for (int cat_pT = 0; cat_pT < 7; ++cat_pT)
 	// {
