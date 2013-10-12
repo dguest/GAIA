@@ -255,7 +255,7 @@ int main(int argc, char *argv[])
         }
 
         int trans = (memory) ? n_train : -1;
-        net.getTransform(verbose, memory, trans);
+        net.getTransform(verbose, memory, trans, cdf, relative);
 
         //Train the net!
         //----------------------------------------------------------------------------
