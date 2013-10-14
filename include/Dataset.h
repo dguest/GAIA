@@ -82,17 +82,23 @@ public:
 	unsigned int num_entries();
 
 
+	void set_pT_bins(std::vector<double> );
+	void set_eta_bins(std::vector<double> );
+
+
 	double get_physics_reweighting();
 	void determine_reweighting(bool cdf = true, bool relative = true);
 	
 private:
+	int get_cat_eta(double eta);
+	int get_cat_pT(double pT);
 	TFile *file;
 	TTree *tree;
 	bool fail;
 	std::map<std::string, std::unique_ptr<Numeric>> variables;
 	unsigned int n_entries;
 	std::vector<std::string> input_vars, output_vars, control_vars;
-	std::vector<double> m_input, m_output;
+	std::vector<double> m_input, m_output, m_pt_bins, m_eta_bins;
 	Reweighting reweighting;
 };
 
