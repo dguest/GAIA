@@ -105,7 +105,7 @@ private:
 		eta = fabs(eta);
 		for (int category = 0; category < n; ++category)
 		{
-			if ((eta >= m_eta_bins[category]) && (eta < m_eta_bins[category - 1]))
+			if ((eta >= m_eta_bins[category]) && (eta < m_eta_bins[category + 1]))
 			{
 				return category;
 			}
@@ -125,7 +125,7 @@ private:
 		pt = fabs(pt);
 		for (int category = 0; category < n; ++category)
 		{
-			if ((pt >= m_pt_bins[category]) && (pt < m_pt_bins[category - 1]))
+			if ((pt >= m_pt_bins[category]) && (pt < m_pt_bins[category + 1]))
 			{
 				return category;
 			}

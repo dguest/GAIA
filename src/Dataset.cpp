@@ -1,6 +1,6 @@
 #include "Dataset.h"
 #include "Activation.h"
-
+#include <stdexcept>
 #include <cmath>
 
 struct Numeric;
@@ -197,16 +197,14 @@ std::map<std::string, double> Dataset::get_performance_map(std::vector<std::stri
 void Dataset::operator[]( const int index )
 {
 	tree->GetEntry(index);
-	try 
-	{
+	try {
 		variables["cat_eta"]->int_ = get_cat_eta(variables["eta"]->double_);
 	}
-	catch (const std::out_of_range& oor){}
-	try 
-	{
+	catch (const std::out_of_range& oor) {}
+	try {
 		variables["cat_pT"]->int_ = get_cat_eta(variables["pT"]->double_);
 	}
-	catch (const std::out_of_range& oor){}
+	catch (const std::out_of_range& oor) {}
 }
 
 void Dataset::at( const int index )
@@ -219,7 +217,7 @@ void Dataset::at( const int index )
 	catch (const std::out_of_range& oor){}
 	try 
 	{
-		variables["cat_pT"]->int_ = get_cat_eta(variables["pT"]->double_);
+		variables["cat_pT"]->int_ = get_cat_pt(variables["pt"]->double_);
 	}
 	catch (const std::out_of_range& oor){}
 }
