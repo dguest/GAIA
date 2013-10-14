@@ -2,6 +2,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <cmath>
 #include <stdio.h>
 #include <utility>
 #include <string>
@@ -82,21 +83,67 @@ public:
 	unsigned int num_entries();
 
 
-	void set_pT_bins(std::vector<double> );
-	void set_eta_bins(std::vector<double> );
+	inline void set_pT_bins(std::vector<double> bins = {20, 30, 40, 50, 60, 75, 90, 110, 140, 200, 500})
+	{
+		m_pt_bins = bins;
+		m_num_pt_bins = m_pt_bins.size() - 1;
+	}
+	inline void set_eta_bins(std::vector<double> bins = {0, 0.6, 1.2, 1.8, 2.5})
+	{
+		m_eta_bins = bins;
+		m_num_eta_bins = m_eta_bins.size() - 1;
+	}
 
 
 	double get_physics_reweighting();
 	void determine_reweighting(bool cdf = true, bool relative = true);
 	
 private:
-	int get_cat_eta(double eta);
-	int get_cat_pT(double pT);
+	inline int get_cat_eta(double eta)
+	{
+		int n = m_eta_bins.size() - 1;
+		eta = fabs(eta);
+		for (int category = 0; category < n; ++category)
+		{
+			if ((eta >= m_eta_bins[category]) && (eta < m_eta_bins[category - 1]))
+			{
+				return category;
+			}
+		}
+		if (eta > m_eta_bins.back())
+		{
+			return n;
+		}
+		else
+		{
+			return 0;
+		}
+	}
+	inline int get_cat_pt(double pt)
+	{
+		int n = m_pt_bins.size() - 1;
+		pt = fabs(pt);
+		for (int category = 0; category < n; ++category)
+		{
+			if ((pt >= m_pt_bins[category]) && (pt < m_pt_bins[category - 1]))
+			{
+				return category;
+			}
+		}
+		if (pt > m_pt_bins.back())
+		{
+			return n;
+		}
+		else
+		{
+			return 0;
+		}
+	}
 	TFile *file;
 	TTree *tree;
 	bool fail;
 	std::map<std::string, std::unique_ptr<Numeric>> variables;
-	unsigned int n_entries;
+	unsigned int n_entries, m_num_eta_bins, m_num_pt_bins;
 	std::vector<std::string> input_vars, output_vars, control_vars;
 	std::vector<double> m_input, m_output, m_pt_bins, m_eta_bins;
 	Reweighting reweighting;

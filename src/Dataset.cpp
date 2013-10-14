@@ -27,6 +27,8 @@ Dataset::Dataset(std::string root_file, std::string tree_name) : fail( false )
 		m_input.reserve(0);
 		m_output.reserve(0);
 		n_entries = tree->GetEntries();
+		set_pT_bins();
+		set_eta_bins();
 	}
 	else
 	{
