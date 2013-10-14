@@ -1,7 +1,7 @@
-JetTaggerCB
+GAIA -- Generalized Algorithm for Identification Architectures
 ===========
 
-A multi-class, generic Neural Network Package for Jet ID's.
+A multi-class, generic Neural Network Package for Jet ID's at the ATLAS detector.
 
 ###Thin-Client installation
 
