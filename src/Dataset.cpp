@@ -93,7 +93,6 @@ bool Dataset::set_input_branch(std::string name, std::string type)
 			m_input.resize(input_vars.size());
 			return 1;
 		}
-
 	}
 	else
 	{
