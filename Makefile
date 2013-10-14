@@ -32,7 +32,7 @@ OBJ = main.o NeuralNet.o Architecture.o Layer.o Activation.o Dataset.o
 
 HEADER = JetTagger.h
 
-TARGET = TaggerFramework
+TARGET = GAIA
 
 
 $(TARGET): $(OBJ:%=$(BIN)/%)

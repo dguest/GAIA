@@ -8,11 +8,8 @@
 
 #include <cmath>
 #include <random>
-#include <cmath>
 #include <stdlib.h>
 #include <iostream>
-#include <algorithm>
-#include <iomanip>
 #include <algorithm>
 #include <memory>
 #include <fstream>
