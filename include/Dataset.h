@@ -19,7 +19,6 @@ struct Reweighting
 	std::vector<std::vector<double> > charm_correction { 0 };
     std::vector<std::vector<double> > bottom_correction { 0 };
 };
-
 /**
 \details Provides a wrapper for a TFile while providing a generic branch setting interface.
 */
@@ -81,8 +80,6 @@ public:
 	\return Number of rows in the TTree.
 	*/
 	unsigned int num_entries();
-
-
 	inline void set_pT_bins(std::vector<double> bins = {20, 30, 40, 50, 60, 75, 90, 110, 140, 200, 500})
 	{
 		m_pt_bins = bins;
@@ -93,8 +90,6 @@ public:
 		m_eta_bins = bins;
 		m_num_eta_bins = m_eta_bins.size() - 1;
 	}
-
-
 	double get_physics_reweighting();
 	void determine_reweighting(bool cdf = true, bool relative = true);
 	
