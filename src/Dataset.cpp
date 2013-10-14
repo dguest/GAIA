@@ -78,11 +78,22 @@ bool Dataset::set_input_branch(std::string name, std::string type)
 	}
 	else if (type == "int")
 	{
-		tree->SetBranchAddress(name.c_str(), &variables[name]->int_);
-		variables[name]->isInt = true;
-		input_vars.push_back(name);
-		m_input.resize(input_vars.size());
-		return 1;
+		if ((name != "cat_eta") && (name != "cat_pT"))
+		{
+			tree->SetBranchAddress(name.c_str(), &variables[name]->int_);
+			variables[name]->isInt = true;
+			input_vars.push_back(name);
+			m_input.resize(input_vars.size());
+			return 1;
+		}
+		else
+		{
+			variables[name]->isInt = true;
+			input_vars.push_back(name);
+			m_input.resize(input_vars.size());
+			return 1;
+		}
+
 	}
 	else
 	{
@@ -146,10 +157,20 @@ bool Dataset::set_control_branch(std::string name, std::string type)
 	}
 	else if (type == "int")
 	{
-		tree->SetBranchAddress(name.c_str(), &variables[name]->int_);
-		variables[name]->isInt = true;
-		control_vars.push_back(name);
-		return 1;
+		if ((name != "cat_eta") && (name != "cat_pT"))
+		{
+			tree->SetBranchAddress(name.c_str(), &variables[name]->int_);
+			variables[name]->isInt = true;
+			control_vars.push_back(name);
+			return 1;			
+		}
+		else
+		{
+			variables[name]->isInt = true;
+			control_vars.push_back(name);
+			return 1;
+		}
+
 	}
 	else
 	{
@@ -176,11 +197,31 @@ std::map<std::string, double> Dataset::get_performance_map(std::vector<std::stri
 void Dataset::operator[]( const int index )
 {
 	tree->GetEntry(index);
+	try 
+	{
+		variables["cat_eta"]->int_ = get_cat_eta(variables["eta"]->double_);
+	}
+	catch (const std::out_of_range& oor){}
+	try 
+	{
+		variables["cat_pT"]->int_ = get_cat_eta(variables["pT"]->double_);
+	}
+	catch (const std::out_of_range& oor){}
 }
 
 void Dataset::at( const int index )
 {
 	tree->GetEntry(index);
+	try 
+	{
+		variables["cat_eta"]->int_ = get_cat_eta(variables["eta"]->double_);
+	}
+	catch (const std::out_of_range& oor){}
+	try 
+	{
+		variables["cat_pT"]->int_ = get_cat_eta(variables["pT"]->double_);
+	}
+	catch (const std::out_of_range& oor){}
 }
 //----------------------------------------------------------------------------
 
