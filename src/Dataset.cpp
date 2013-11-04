@@ -1,6 +1,6 @@
 #include "Dataset.h"
 #include "Activation.h"
-
+#include <stdexcept>
 #include <cmath>
 
 struct Numeric;
@@ -27,6 +27,8 @@ Dataset::Dataset(std::string root_file, std::string tree_name) : fail( false )
 		m_input.reserve(0);
 		m_output.reserve(0);
 		n_entries = tree->GetEntries();
+		set_pT_bins();
+		set_eta_bins();
 	}
 	else
 	{
@@ -76,11 +78,21 @@ bool Dataset::set_input_branch(std::string name, std::string type)
 	}
 	else if (type == "int")
 	{
-		tree->SetBranchAddress(name.c_str(), &variables[name]->int_);
-		variables[name]->isInt = true;
-		input_vars.push_back(name);
-		m_input.resize(input_vars.size());
-		return 1;
+		if ((name != "cat_eta") && (name != "cat_pT"))
+		{
+			tree->SetBranchAddress(name.c_str(), &variables[name]->int_);
+			variables[name]->isInt = true;
+			input_vars.push_back(name);
+			m_input.resize(input_vars.size());
+			return 1;
+		}
+		else
+		{
+			variables[name]->isInt = true;
+			input_vars.push_back(name);
+			m_input.resize(input_vars.size());
+			return 1;
+		}
 	}
 	else
 	{
@@ -144,10 +156,20 @@ bool Dataset::set_control_branch(std::string name, std::string type)
 	}
 	else if (type == "int")
 	{
-		tree->SetBranchAddress(name.c_str(), &variables[name]->int_);
-		variables[name]->isInt = true;
-		control_vars.push_back(name);
-		return 1;
+		if ((name != "cat_eta") && (name != "cat_pT"))
+		{
+			tree->SetBranchAddress(name.c_str(), &variables[name]->int_);
+			variables[name]->isInt = true;
+			control_vars.push_back(name);
+			return 1;			
+		}
+		else
+		{
+			variables[name]->isInt = true;
+			control_vars.push_back(name);
+			return 1;
+		}
+
 	}
 	else
 	{
@@ -174,11 +196,29 @@ std::map<std::string, double> Dataset::get_performance_map(std::vector<std::stri
 void Dataset::operator[]( const int index )
 {
 	tree->GetEntry(index);
+	try {
+		variables["cat_eta"]->int_ = get_cat_eta(variables["eta"]->double_);
+	}
+	catch (const std::out_of_range& oor) {}
+	try {
+		variables["cat_pT"]->int_ = get_cat_eta(variables["pT"]->double_);
+	}
+	catch (const std::out_of_range& oor) {}
 }
 
 void Dataset::at( const int index )
 {
 	tree->GetEntry(index);
+	try 
+	{
+		variables["cat_eta"]->int_ = get_cat_eta(variables["eta"]->double_);
+	}
+	catch (const std::out_of_range& oor){}
+	try 
+	{
+		variables["cat_pT"]->int_ = get_cat_pt(variables["pt"]->double_);
+	}
+	catch (const std::out_of_range& oor){}
 }
 //----------------------------------------------------------------------------
 
@@ -232,26 +272,30 @@ unsigned int Dataset::num_entries()
 	return n_entries;
 }
 //----------------------------------------------------------------------------
-void Dataset::determine_reweighting()
+void Dataset::determine_reweighting(bool cdf, bool relative) //this stuff is pretty specific for b/c/u training
 {
-	int n_estimate = n_entries / 20;
-	std::vector<std::vector<double> > charm_correction, bottom_correction, charm_hist, bottom_hist, light_hist;
-	charm_correction.resize(7);
-	bottom_correction.resize(7);
-	charm_hist.resize(7);
-	bottom_hist.resize(7);
-	light_hist.resize(7);
-	for (int i = 0; i < 7; ++i)
+	int n_estimate = n_entries / 10;
+	std::vector<std::vector<double> > charm_correction, light_correction, bottom_correction, charm_hist, bottom_hist, light_hist;
+	charm_correction.resize(m_num_pt_bins);
+	bottom_correction.resize(m_num_pt_bins);
+	light_correction.resize(m_num_pt_bins);
+	charm_hist.resize(m_num_pt_bins);
+	bottom_hist.resize(m_num_pt_bins);
+	light_hist.resize(m_num_pt_bins);
+	double charm_pct = 0.20, bottom_pct = 0.50, light_pct = 0.50;
+	for (int i = 0; i < m_num_pt_bins; ++i)
 	{
-		charm_correction[i].resize(4);
-		bottom_correction[i].resize(4);
-		charm_hist[i].resize(4);
-		bottom_hist[i].resize(4);
-		light_hist[i].resize(4);
+		charm_correction[i].resize(m_num_eta_bins);
+		bottom_correction[i].resize(m_num_eta_bins);
+		light_correction[i].resize(m_num_eta_bins);
+
+		charm_hist[i].resize(m_num_eta_bins);
+		bottom_hist[i].resize(m_num_eta_bins);
+		light_hist[i].resize(m_num_eta_bins);
 	}
-	for (int cat_pT = 0; cat_pT < 7; ++cat_pT)
+	for (int cat_pT = 0; cat_pT < m_num_pt_bins; ++cat_pT)
 	{
-		for (int cat_eta = 0; cat_eta < 4; ++cat_eta)
+		for (int cat_eta = 0; cat_eta < m_num_eta_bins; ++cat_eta)
 		{
 			light_hist[cat_pT][cat_eta] = 0;
 			charm_hist[cat_pT][cat_eta] = 0;
@@ -278,14 +322,81 @@ void Dataset::determine_reweighting()
 		}
 
 	}
-	for (int cat_pT = 0; cat_pT < 7; ++cat_pT)
+	if (cdf)
 	{
-		for (int cat_eta = 0; cat_eta < 4; ++cat_eta)
+		for (int cat_pT = 0; cat_pT < m_num_pt_bins; ++cat_pT)
 		{
-			bottom_correction[cat_pT][cat_eta] = std::min(std::max(light_hist[cat_pT][cat_eta], 1.0) / ((5.17 / 4.0) * std::max(bottom_hist[cat_pT][cat_eta], 1.0)), 20.0);
-			charm_correction[cat_pT][cat_eta] = std::min(std::max(light_hist[cat_pT][cat_eta], 1.0) / (2.5 * std::max(charm_hist[cat_pT][cat_eta], 1.0)), 20.0);
+			for (int cat_eta = 1; cat_eta < m_num_eta_bins; ++cat_eta)
+			{
+				light_hist[cat_pT][cat_eta] += light_hist[cat_pT][cat_eta - 1];
+				charm_hist[cat_pT][cat_eta] += charm_hist[cat_pT][cat_eta - 1];
+				bottom_hist[cat_pT][cat_eta] += bottom_hist[cat_pT][cat_eta - 1];
+			}
+		}
+
+
+		for (int cat_eta = 0; cat_eta < m_num_eta_bins; ++cat_eta)
+		{
+			for (int cat_pT = 1; cat_pT < m_num_pt_bins; ++cat_pT)
+			{
+				light_hist[cat_pT][cat_eta] += light_hist[cat_pT - 1][cat_eta];
+				charm_hist[cat_pT][cat_eta] += charm_hist[cat_pT - 1][cat_eta];
+				bottom_hist[cat_pT][cat_eta] += bottom_hist[cat_pT - 1][cat_eta];
+			}
+		}
+		int light_total = light_hist[m_num_pt_bins - 1][m_num_eta_bins - 1];
+		int charm_total = charm_hist[m_num_pt_bins - 1][m_num_eta_bins - 1];
+		int bottom_total = bottom_hist[m_num_pt_bins - 1][m_num_eta_bins - 1];
+		int total = light_total + charm_total + bottom_total;
+
+		double charm_factor = charm_pct / ((double)charm_total / (double)total);
+		double bottom_factor = bottom_pct / ((double)bottom_total / (double)total);
+		double light_factor = light_pct / ((double)light_total / (double)total);
+
+		for (int cat_pT = 0; cat_pT < m_num_pt_bins; ++cat_pT)
+		{
+			for (int cat_eta = 0; cat_eta < m_num_eta_bins; ++cat_eta)
+			{
+				light_hist[cat_pT][cat_eta] /= light_total;
+				charm_hist[cat_pT][cat_eta] /= charm_total;
+				bottom_hist[cat_pT][cat_eta] /= bottom_total;
+			}
+		}
+
+
+		for (int cat_pT = 0; cat_pT < m_num_pt_bins; ++cat_pT)
+		{
+			for (int cat_eta = 0; cat_eta < m_num_eta_bins; ++cat_eta)
+			{
+				light_correction[cat_pT][cat_eta] = light_factor * (1 / light_hist[cat_pT][cat_eta]);
+				charm_correction[cat_pT][cat_eta] = charm_factor * (1 / charm_hist[cat_pT][cat_eta]);
+				bottom_correction[cat_pT][cat_eta] = bottom_factor * (1 / bottom_hist[cat_pT][cat_eta]);
+			}
+		}
+		if (relative)
+		{
+			for (int cat_pT = 0; cat_pT < m_num_pt_bins; ++cat_pT)
+			{
+				for (int cat_eta = 0; cat_eta < m_num_eta_bins; ++cat_eta)
+				{
+					charm_correction[cat_pT][cat_eta] /= light_correction[cat_pT][cat_eta];
+					bottom_correction[cat_pT][cat_eta] /= light_correction[cat_pT][cat_eta];
+				}
+			}
 		}
 	}
+	else
+	{
+		for (int cat_pT = 0; cat_pT < m_num_pt_bins; ++cat_pT)
+		{
+			for (int cat_eta = 0; cat_eta < m_num_eta_bins; ++cat_eta)
+			{
+				bottom_correction[cat_pT][cat_eta] = std::min(std::max(light_hist[cat_pT][cat_eta], 1.0) / ((1.0) * std::max(bottom_hist[cat_pT][cat_eta], 1.0)), 20.0);
+				charm_correction[cat_pT][cat_eta] = std::min(std::max(light_hist[cat_pT][cat_eta], 1.0) / (5.0 * std::max(charm_hist[cat_pT][cat_eta], 1.0)), 20.0);
+			}
+		}
+	}
+	
 	reweighting.charm_correction = charm_correction;
 	reweighting.bottom_correction = bottom_correction;
 }

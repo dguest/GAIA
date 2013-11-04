@@ -20,7 +20,8 @@ LDFLAGS =
 #-L/usr/local/opt/boost/lib
 
 ROOTCFLAGS = $(shell root-config --cflags)
-ROOTLIBS = -L$(shell root-config --libdir) -lTree
+ROOTLIBS = $(shell root-config --libs)
+# ROOTLIBS = -L$(shell root-config --libdir) -lTree
 ROOTLDFLAGS = $(shell root-config --ldflags)
 
 CXXFLAGS += $(ROOTCFLAGS)
@@ -31,7 +32,7 @@ OBJ = main.o NeuralNet.o Architecture.o Layer.o Activation.o Dataset.o
 
 HEADER = JetTagger.h
 
-TARGET = TaggerFramework
+TARGET = GAIA
 
 
 $(TARGET): $(OBJ:%=$(BIN)/%)
